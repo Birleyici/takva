@@ -7,6 +7,25 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Legacy Data Import
+
+The project ships with an Artisan command that moves the content stored in the `public/dbtakva_2025-11-17_10-18-18.sql` dump into the new schema. The command expects the dump to be restored into a separate database (any MySQL/MariaDB instance works) and the legacy uploads to be copied under `storage/app/public/legacy` (the importer will reuse the original file names, so just drop the old `uploads` directory there).
+
+1. Restore the SQL dump: `mysql -u root -p -e "CREATE DATABASE dbtakva"` and `mysql -u root -p dbtakva < public/dbtakva_2025-11-17_10-18-18.sql`.
+2. Configure the connection that points to that database via the `LEGACY_DB_*` values in `.env` (see `.env.example`).
+3. Copy the legacy `/uploads` folder (magazine covers, article images, PDF files, etc.) into `storage/app/public/legacy` and run `php artisan storage:link` if you have not done so already.
+4. Run the importer: `php artisan legacy:import`. Use `--dry-run` to check the connection, `--fresh` to truncate target tables before importing, and `--only=categories,authors,articles` to limit the sections.
+
+The importer handles the following mappings:
+
+- `tbl_grup` + `tbl_grupdil` → `categories`
+- `tbl_yazar` → `authors` (+profile photos)
+- `tbl_urun` + `tbl_urundil` → `articles` (with category/author/media relations)
+- `tbl_yuklemeler` + `tbl_yuklemelerdil` → `issues` (cover images + PDF metadata)
+- `tbl_iletisim` → `site_settings`
+
+Missing files are reported at the end of the run so you can copy the remaining assets from the old server.
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

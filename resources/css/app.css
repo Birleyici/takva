@@ -1,0 +1,376 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&family=Cinzel+Decorative:wght@400;700;900&family=Amiri:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Shaha Teması İlhamlı Modern İslami Renkler */
+:root {
+  /* Ana Renkler - Modern & Minimal */
+  --color-primary: #0f766e;      /* Teal/koyu yeşil - Modern İslami */
+  --color-primary-dark: #115e59;
+  --color-primary-light: #5eead4;
+  
+  --color-secondary: #374151;    /* Koyu gri - Modern metin */
+  --color-secondary-dark: #1f2937;
+  --color-secondary-light: #d6d3d1;
+  
+  --color-accent: #d4af37;       /* Elegant altın - Lüks his */
+  --color-accent-dark: #b45309;
+  --color-accent-light: #fcd34d;
+  
+  --color-neutral: #6b7280;      /* Açık gri - Subtle */
+  --color-neutral-dark: #374151;
+  --color-neutral-light: #f3f4f6;
+}
+
+/* Özel Component Sınıfları */
+@layer components {
+  .btn-primary {
+    @apply bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary-500 hover:bg-secondary-600 text-white px-6 py-3 rounded-lg font-medium transition-colors;
+  }
+  
+  .btn-accent {
+    @apply bg-accent-500 hover:bg-accent-600 text-white px-6 py-3 rounded-lg font-medium transition-colors;
+  }
+  
+  .card {
+    @apply bg-white border border-neutral-200 rounded-lg shadow-sm p-6;
+  }
+  
+  .text-primary {
+    @apply text-primary-600;
+  }
+  
+  .text-secondary {
+    @apply text-secondary-600;
+  }
+  
+  .text-accent {
+    @apply text-accent-600;
+  }
+
+  /* İslami Arka Plan Desenleri */
+  .islamic-pattern-1 {
+    background-image: 
+      radial-gradient(circle at 25% 25%, var(--color-primary) 2px, transparent 2px),
+      radial-gradient(circle at 75% 75%, var(--color-accent) 1px, transparent 1px);
+    background-size: 50px 50px;
+    background-position: 0 0, 25px 25px;
+    opacity: 0.1;
+  }
+
+  .islamic-pattern-2 {
+    background-image: 
+      linear-gradient(45deg, transparent 40%, var(--color-primary) 40%, var(--color-primary) 60%, transparent 60%),
+      linear-gradient(-45deg, transparent 40%, var(--color-secondary) 40%, var(--color-secondary) 60%, transparent 60%);
+    background-size: 30px 30px;
+    opacity: 0.05;
+  }
+
+  .geometric-pattern {
+    background-image: 
+      repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        var(--color-primary) 10px,
+        var(--color-primary) 11px
+      ),
+      repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 10px,
+        var(--color-accent) 10px,
+        var(--color-accent) 11px
+      );
+    opacity: 0.03;
+  }
+
+  .arabesque-pattern {
+    background-image: 
+      radial-gradient(circle at 50% 50%, var(--color-primary) 1px, transparent 1px),
+      radial-gradient(circle at 25% 75%, var(--color-accent) 0.5px, transparent 0.5px),
+      radial-gradient(circle at 75% 25%, var(--color-secondary) 0.5px, transparent 0.5px);
+    background-size: 40px 40px, 60px 60px, 80px 80px;
+    background-position: 0 0, 20px 20px, 40px 40px;
+    opacity: 0.08;
+  }
+
+  .mosque-silhouette {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 20'%3E%3Cpath d='M20 20v-8c0-2 2-4 4-4s4 2 4 4v8M40 20v-6c0-3 3-6 6-6s6 3 6 6v6M70 20v-4c0-4 4-8 8-8s8 4 8 8v4' fill='none' stroke='%23558B2F' stroke-width='0.5' opacity='0.1'/%3E%3C/svg%3E");
+    background-repeat: repeat-x;
+    background-position: bottom;
+    background-size: 200px 40px;
+  }
+
+  /* Hero Section Enhancements */
+  .hero-bg-overlay {
+    background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(15, 118, 110, 0.3) 100%);
+  }
+
+  /* Smooth Animations */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .fade-in-up {
+    animation: fadeInUp 0.8s ease-out;
+  }
+
+  /* Islamic Decorative Elements */
+  .islamic-star {
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  }
+
+  /* Enhanced Button Effects */
+  .btn-glow:hover {
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+    transform: translateY(-2px);
+  }
+
+  /* Responsive Typography */
+  @media (max-width: 768px) {
+    .hero-title {
+      font-size: 3rem !important;
+      line-height: 1.1 !important;
+    }
+    
+    .hero-subtitle {
+      font-size: 1.125rem !important;
+      line-height: 1.6 !important;
+    }
+  }
+
+  /* Scroll Indicator Animation */
+  @keyframes bounce {
+    0%, 20%, 53%, 80%, 100% {
+      transform: translate3d(0,0,0);
+    }
+    40%, 43% {
+      transform: translate3d(0,-10px,0);
+    }
+    70% {
+      transform: translate3d(0,-5px,0);
+    }
+    90% {
+      transform: translate3d(0,-2px,0);
+    }
+  }
+
+  .animate-bounce-slow {
+    animation: bounce 2s infinite;
+  }
+
+  /* Makale Gövdesi Tipografisi */
+  .article-body {
+    @apply mx-auto max-w-4xl font-body text-[1.075rem] leading-[1.9] text-secondary-800 tracking-wide;
+  }
+
+  .article-body > * {
+    margin-top: 1.6rem;
+    margin-bottom: 1.6rem;
+  }
+
+  .article-body > *:first-child {
+    margin-top: 0;
+  }
+
+  .article-body > *:last-child {
+    margin-bottom: 0;
+  }
+
+  .article-body h1,
+  .article-body h2,
+  .article-body h3,
+  .article-body h4,
+  .article-body h5,
+  .article-body h6 {
+    @apply font-heading text-secondary-900 tracking-tight;
+  }
+
+  .article-body h2 {
+    @apply text-3xl sm:text-4xl font-semibold;
+    margin-top: 3rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .article-body h3 {
+    @apply text-2xl font-semibold text-secondary-900;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .article-body h4 {
+    @apply text-xl font-semibold text-secondary-900;
+    margin-top: 2rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .article-body p,
+  .article-body li {
+    @apply text-secondary-800 leading-relaxed;
+  }
+
+  .article-body a {
+    @apply text-primary-600 decoration-primary-200 decoration-2 underline-offset-4 transition-colors;
+  }
+
+  .article-body a:hover {
+    @apply text-primary-700 decoration-primary-400;
+  }
+
+  .article-body strong {
+    @apply text-secondary-900 font-semibold;
+  }
+
+  .article-body em {
+    @apply text-secondary-700 italic;
+  }
+
+  .article-body blockquote {
+    @apply border-l-4 border-primary-400 bg-primary-50/70 px-6 py-5 rounded-2xl text-secondary-800 relative overflow-hidden;
+  }
+
+  .article-body blockquote::before {
+    content: '“';
+    position: absolute;
+    top: -1rem;
+    left: 1.25rem;
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(3rem, 6vw, 4.5rem);
+    color: rgba(15, 118, 110, 0.15);
+  }
+
+  .article-body ul,
+  .article-body ol {
+    @apply pl-6 text-secondary-800;
+  }
+
+  .article-body ul {
+    list-style-type: disc;
+  }
+
+  .article-body ol {
+    list-style-type: decimal;
+  }
+
+  .article-body li + li {
+    margin-top: 0.5rem;
+  }
+
+  .article-body hr {
+    @apply my-10 border-t border-neutral-200;
+  }
+
+  .article-body img,
+  .article-body video,
+  .article-body iframe {
+    @apply mx-auto my-8 block w-full rounded-3xl border border-neutral-100 shadow-lg;
+  }
+
+  .article-body figure {
+    @apply my-10 text-center;
+  }
+
+  .article-body figcaption {
+    @apply mt-3 text-sm text-neutral-500;
+  }
+
+  .article-body pre {
+    @apply overflow-x-auto rounded-2xl border border-neutral-200 bg-neutral-900/95 p-5 text-sm text-neutral-50 shadow-inner;
+  }
+
+  .article-body code {
+    @apply rounded-md bg-neutral-100 px-2 py-1 text-sm text-secondary-900;
+  }
+
+  .article-body pre code {
+    @apply bg-transparent p-0 text-neutral-50;
+  }
+
+  .article-body table {
+    @apply w-full border-collapse overflow-hidden rounded-2xl text-left text-sm shadow-sm;
+  }
+
+  .article-body thead {
+    @apply bg-neutral-50 text-secondary-900 uppercase tracking-wide text-xs;
+  }
+
+  .article-body th,
+  .article-body td {
+    @apply border border-neutral-100 px-4 py-3;
+  }
+
+  .article-body tbody tr:nth-child(even) {
+    @apply bg-neutral-50/40;
+  }
+
+  .article-body .ql-align-center {
+    text-align: center;
+  }
+
+  .article-body .ql-align-right {
+    text-align: right;
+  }
+
+  .article-body .ql-indent-1 { padding-left: 1.5rem; }
+  .article-body .ql-indent-2 { padding-left: 3rem; }
+  .article-body .ql-indent-3 { padding-left: 4.5rem; }
+  .article-body .ql-indent-4 { padding-left: 6rem; }
+  .article-body .ql-indent-5 { padding-left: 7.5rem; }
+
+  /* Quill editörü için zengin görünüm */
+  .article-editor .ql-toolbar {
+    @apply rounded-t-[1.25rem] border-0 border-b border-neutral-100 bg-neutral-50/70 px-4 py-2 text-secondary-600;
+  }
+
+  .article-editor .ql-toolbar button:hover,
+  .article-editor .ql-toolbar button.ql-active {
+    @apply text-primary-600;
+  }
+
+  .article-editor .ql-container {
+    @apply rounded-b-[1.25rem] border-0;
+  }
+
+  .article-editor .ql-editor {
+    @apply min-h-[260px] rounded-b-[1.25rem] bg-white px-4 py-5 font-body text-base leading-[1.8] text-secondary-800;
+  }
+
+  .article-editor .ql-editor p {
+    @apply my-4;
+  }
+
+  .article-editor .ql-editor h2 {
+    @apply text-2xl font-semibold text-secondary-900 my-5;
+  }
+
+  .article-editor .ql-editor h3 {
+    @apply text-xl font-semibold text-secondary-900 my-4;
+  }
+
+  .article-editor .ql-editor blockquote {
+    @apply border-l-4 border-primary-400 bg-primary-50/70 px-4 py-3 rounded-xl my-5;
+  }
+
+  .article-editor .ql-editor ul,
+  .article-editor .ql-editor ol {
+    @apply my-4 pl-6;
+  }
+
+  .article-editor .ql-editor img {
+    @apply rounded-2xl border border-neutral-100 shadow-sm my-5;
+  }
+}
