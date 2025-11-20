@@ -89,11 +89,92 @@
                     data-search-endpoint="{{ route('search.api') }}"
                     data-search-page="{{ route('search.index') }}"
                 ></div>
-                <button class="text-white" aria-label="Menüyü aç">
+                <button
+                    class="text-white"
+                    aria-label="Menüyü aç"
+                    type="button"
+                    data-mobile-menu-trigger
+                >
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                     </svg>
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <div
+        class="fixed inset-0 z-40 hidden bg-secondary-900/70 backdrop-blur-sm"
+        data-mobile-menu-overlay
+    ></div>
+    <div
+        class="fixed inset-y-0 right-0 z-50 flex w-72 max-h-screen translate-x-full transform flex-col overflow-hidden bg-white shadow-2xl transition duration-300"
+        data-mobile-menu-panel
+    >
+        <div class="flex items-center justify-between border-b border-neutral-100 px-5 py-4">
+            <div>
+                <p class="text-xs uppercase tracking-[0.28em] text-primary-500 font-semibold">Takva</p>
+                <p class="text-sm font-semibold text-secondary-900">Menü</p>
+            </div>
+            <button
+                type="button"
+                class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 text-neutral-500"
+                aria-label="Menüyü kapat"
+                data-mobile-menu-close
+            >
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-5 py-6">
+            <nav class="space-y-4 text-secondary-900">
+                <a href="/" class="block text-base font-semibold transition hover:text-primary-600">
+                    Ana Sayfa
+                </a>
+                <a href="{{ route('issues.index') }}" class="block text-base font-semibold transition hover:text-primary-600">
+                    Sayılar
+                </a>
+                <a href="{{ route('articles.index') }}" class="block text-base font-semibold transition hover:text-primary-600">
+                    Makaleler
+                </a>
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.3em] text-neutral-400">
+                        Konular
+                    </p>
+                    <ul class="mt-2 space-y-2 text-sm">
+                        @php($navCategories = $navCategories ?? collect())
+                        @forelse($navCategories as $category)
+                            <li>
+                                <a href="{{ route('articles.category', ['category' => $category->slug]) }}" class="flex items-center justify-between rounded-xl border border-neutral-100 px-3 py-2 text-secondary-700 transition hover:border-primary-100 hover:text-primary-600">
+                                    <span>{{ $category->name }}</span>
+                                    <span class="text-xs text-neutral-400">{{ $category->articles_count ?? 0 }}</span>
+                                </a>
+                            </li>
+                        @empty
+                            <li class="text-neutral-400">Konular yakında</li>
+                        @endforelse
+                    </ul>
+                </div>
+                <a href="{{ route('authors.index') }}" class="block text-base font-semibold transition hover:text-primary-600">
+                    Yazarlar
+                </a>
+                @php($navMenuPages = $navMenuPages ?? collect())
+                @foreach($navMenuPages as $menuPage)
+                    <a href="{{ route('menu.show', $menuPage->slug) }}" class="block text-base font-semibold transition hover:text-primary-600">
+                        {{ $menuPage->title }}
+                    </a>
+                @endforeach
+                <a href="{{ route('contact.show') }}" class="block text-base font-semibold transition hover:text-primary-600">
+                    İletişim
+                </a>
+            </nav>
+
+            <div class="mt-6">
+                <a href="{{ route('contact.show') }}" class="inline-flex w-full items-center justify-center rounded-2xl bg-accent-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-accent-500/20 transition hover:bg-accent-600">
+                    Abone Ol
+                </a>
             </div>
         </div>
     </div>
