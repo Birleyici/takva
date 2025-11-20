@@ -24,6 +24,7 @@ const uploadInputRef = ref(null);
 const localError = ref('');
 const deletingId = ref(null);
 const deleteError = ref('');
+const listContainerRef = ref(null);
 
 watch(
     () => props.open,
@@ -53,6 +54,8 @@ const hasMedia = computed(
     () => !loading.value && items.value.length > 0,
 );
 
+const hasMultiplePages = computed(() => meta.value.last_page > 1);
+
 function closeModal() {
     emit('close');
 }
@@ -63,15 +66,18 @@ function handleSelect(media) {
     emit('close');
 }
 
-async function loadMore() {
-    if (isLastPage.value || loading.value) {
+async function goToPage(page) {
+    if (loading.value || page < 1 || page > meta.value.last_page || page === meta.value.current_page) {
         return;
     }
 
     await mediaStore.fetchMedia({
-        page: meta.value.current_page + 1,
-        append: true,
+        page,
     });
+
+    if (listContainerRef.value) {
+        listContainerRef.value.scrollTop = 0;
+    }
 }
 
 async function handleUpload(event) {
@@ -144,7 +150,9 @@ async function handleDelete(media, event) {
                 enter-to-class="opacity-100 translate-y-0 sm:scale-100" leave-active-class="duration-150 ease-in"
                 leave-from-class="opacity-100 translate-y-0 sm:scale-100"
                 leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
-                <div class="relative flex w-full max-w-5xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+                <div
+                    class="relative flex h-full w-full max-w-5xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)]"
+                >
                     <header class="flex items-center justify-between border-b border-neutral-100 px-6 py-5">
                         <div>
                             <p class="text-xs font-semibold uppercase tracking-[0.28em] text-neutral-400">
@@ -193,7 +201,7 @@ async function handleDelete(media, event) {
                             {{ localError || deleteError || error }}
                         </div>
 
-                        <div class="flex-1 overflow-y-auto px-6 py-6">
+                        <div ref="listContainerRef" class="flex-1 overflow-y-auto px-6 py-6">
                             <div v-if="loading && !items.length" class="py-14 text-center text-sm text-neutral-500">
                                 Görseller yükleniyor...
                             </div>
@@ -255,23 +263,31 @@ async function handleDelete(media, event) {
                         </div>
 
                         <footer
-                            class="flex items-center justify-between border-t border-neutral-100 px-6 py-4 text-xs text-neutral-500">
-                            <span>
-                                Toplam {{ meta.total }} öğe
-                            </span>
-                            <button
-                                type="button"
-                                class="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral-200 px-4 py-2 text-xs font-semibold text-neutral-600 transition hover:border-primary-200 hover:text-primary-600 disabled:opacity-40"
-                                :disabled="isLastPage || loading"
-                                @click="loadMore"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor" stroke-width="1.8">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M12 4v16m8-8H4" />
-                                </svg>
-                                Daha Fazla Yükle
-                            </button>
+                            class="flex flex-col gap-3 border-t border-neutral-100 px-6 py-4 text-xs text-neutral-500 sm:flex-row sm:items-center sm:justify-between"
+                        >
+                            <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+                                <span>Toplam {{ meta.total }} öğe</span>
+                                <span class="sm:hidden">•</span>
+                                <span>Sayfa {{ meta.current_page }} / {{ meta.last_page }}</span>
+                            </div>
+                            <div class="flex items-center gap-2" v-if="hasMultiplePages">
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center justify-center rounded-xl border border-neutral-200 px-3 py-2 font-semibold text-neutral-600 transition hover:border-primary-200 hover:text-primary-600 disabled:opacity-40"
+                                    :disabled="meta.current_page <= 1 || loading"
+                                    @click="goToPage(meta.current_page - 1)"
+                                >
+                                    Önceki
+                                </button>
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center justify-center rounded-xl border border-neutral-200 px-3 py-2 font-semibold text-neutral-600 transition hover:border-primary-200 hover:text-primary-600 disabled:opacity-40"
+                                    :disabled="meta.current_page >= meta.last_page || loading"
+                                    @click="goToPage(meta.current_page + 1)"
+                                >
+                                    Sonraki
+                                </button>
+                            </div>
                         </footer>
                     </div>
                 </div>

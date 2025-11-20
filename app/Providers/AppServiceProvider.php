@@ -10,6 +10,7 @@ use App\Repositories\AuthorRepository;
 use App\Repositories\CategoryRepository;
 use App\Repositories\IssueRepository;
 use App\Repositories\Interfaces\ArticleRepositoryInterface;
+use App\Repositories\Interfaces\ContactMessageRepositoryInterface;
 use App\Repositories\Interfaces\AuthorRepositoryInterface;
 use App\Repositories\Interfaces\CategoryRepositoryInterface;
 use App\Repositories\Interfaces\IssueRepositoryInterface;
@@ -18,6 +19,7 @@ use App\Repositories\Interfaces\MenuPageRepositoryInterface;
 use App\Repositories\Interfaces\SiteSettingRepositoryInterface;
 use App\Repositories\MediaAssetRepository;
 use App\Repositories\MenuPageRepository;
+use App\Repositories\ContactMessageRepository;
 use App\Repositories\SiteSettingRepository;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
@@ -39,6 +41,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(IssueRepositoryInterface::class, IssueRepository::class);
         $this->app->bind(MenuPageRepositoryInterface::class, MenuPageRepository::class);
         $this->app->bind(SiteSettingRepositoryInterface::class, SiteSettingRepository::class);
+        $this->app->bind(ContactMessageRepositoryInterface::class, ContactMessageRepository::class);
     }
 
     /**

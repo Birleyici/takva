@@ -13,6 +13,7 @@ import MenuPageCreate from '../pages/menu-pages/MenuPageCreate.vue';
 import MenuPageEdit from '../pages/menu-pages/MenuPageEdit.vue';
 import SiteSettings from '../pages/settings/SiteSettings.vue';
 import AccountSettings from '../pages/settings/AccountSettings.vue';
+import ContactMessageList from '../pages/contact/ContactMessageList.vue';
 
 const routes = [
     {
@@ -121,6 +122,15 @@ const routes = [
         meta: {
             title: 'Menü Sayfası Düzenle',
             breadcrumb: 'Menü Sayfası Düzenle',
+        },
+    },
+    {
+        path: '/contact-messages',
+        name: 'management.contact-messages',
+        component: ContactMessageList,
+        meta: {
+            title: 'İletişim Mesajları',
+            breadcrumb: 'İletişim Mesajları',
         },
     },
     {

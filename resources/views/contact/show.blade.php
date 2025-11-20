@@ -80,14 +80,82 @@
                 <div class="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
                     <h2 class="text-2xl font-semibold text-secondary-900">Bize Yazın</h2>
                     <p class="mt-2 text-sm text-neutral-500">Projeler, yayın önerileri veya iş birlikleri için mesaj bırakabilirsiniz.</p>
-                    <form class="mt-6 grid gap-4">
-                        <div class="grid gap-4 sm:grid-cols-2">
-                            <input type="text" placeholder="Adınız Soyadınız" class="w-full rounded-xl border border-neutral-200 px-4 py-3 text-sm text-secondary-900 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100">
-                            <input type="email" placeholder="E-posta adresiniz" class="w-full rounded-xl border border-neutral-200 px-4 py-3 text-sm text-secondary-900 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100">
+
+                    @if (session('contact_success'))
+                        <div class="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                            {{ session('contact_success') }}
                         </div>
-                        <input type="text" placeholder="Konu" class="w-full rounded-xl border border-neutral-200 px-4 py-3 text-sm text-secondary-900 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100">
-                        <textarea rows="5" placeholder="Mesajınız" class="w-full rounded-xl border border-neutral-200 px-4 py-3 text-sm text-secondary-900 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100"></textarea>
-                        <button type="button" class="inline-flex items-center justify-center rounded-2xl bg-primary-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary-600/20 transition hover:bg-primary-500">
+                    @endif
+
+                    @if ($errors->any())
+                        <div class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                            Lütfen formdaki hataları düzeltin ve tekrar deneyin.
+                        </div>
+                    @endif
+
+                    <form class="mt-6 grid gap-4" action="{{ route('contact.store') }}" method="POST">
+                        @csrf
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <label for="contact-name" class="sr-only">Adınız Soyadınız</label>
+                                <input
+                                    id="contact-name"
+                                    type="text"
+                                    name="name"
+                                    value="{{ old('name') }}"
+                                    placeholder="Adınız Soyadınız"
+                                    class="w-full rounded-xl border border-neutral-200 px-4 py-3 text-sm text-secondary-900 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                                    required
+                                >
+                                @error('name')
+                                    <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="contact-email" class="sr-only">E-posta adresiniz</label>
+                                <input
+                                    id="contact-email"
+                                    type="email"
+                                    name="email"
+                                    value="{{ old('email') }}"
+                                    placeholder="E-posta adresiniz"
+                                    class="w-full rounded-xl border border-neutral-200 px-4 py-3 text-sm text-secondary-900 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                                    required
+                                >
+                                @error('email')
+                                    <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+                        <div>
+                            <label for="contact-subject" class="sr-only">Konu</label>
+                            <input
+                                id="contact-subject"
+                                type="text"
+                                name="subject"
+                                value="{{ old('subject') }}"
+                                placeholder="Konu"
+                                class="w-full rounded-xl border border-neutral-200 px-4 py-3 text-sm text-secondary-900 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                            >
+                            @error('subject')
+                                <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label for="contact-message" class="sr-only">Mesajınız</label>
+                            <textarea
+                                id="contact-message"
+                                name="message"
+                                rows="5"
+                                placeholder="Mesajınız"
+                                class="w-full rounded-xl border border-neutral-200 px-4 py-3 text-sm text-secondary-900 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                                required
+                            >{{ old('message') }}</textarea>
+                            @error('message')
+                                <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <button type="submit" class="inline-flex items-center justify-center rounded-2xl bg-primary-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary-600/20 transition hover:bg-primary-500">
                             Mesajı Gönder
                         </button>
                     </form>
