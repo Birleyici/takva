@@ -6,7 +6,7 @@
 @php
     $latestArticles = collect($latestArticles);
     $popularArticles = collect($popularArticles);
-    $articlePlaceholder = 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80';
+    $articlePlaceholder = '/placeholder.jpg';
 @endphp
 
 <!-- Latest Articles Section -->

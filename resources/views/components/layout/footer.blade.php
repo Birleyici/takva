@@ -1,3 +1,8 @@
+@php
+    $hasCustomFooterLogo = filled(optional($siteSettings)->logo_url ?? null);
+    $footerLogo = $hasCustomFooterLogo ? $siteSettings->logo_url : asset('logo.png');
+@endphp
+
 <!-- Footer - İslami Desenli -->
 <footer class="bg-secondary-800 text-white relative overflow-hidden">
    
@@ -5,7 +10,7 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div class="col-span-1 md:col-span-2">
                 <div class="flex items-center space-x-3 mb-6">
-                    <img src="https://www.takvadergisi.org/images/takva-logo-red.png" alt="Takva Dergisi Logo" class="h-12 w-auto filter brightness-0 invert" />
+                    <img src="{{ $footerLogo }}" alt="Takva Dergisi Logo" class="h-12 w-auto object-contain {{ $hasCustomFooterLogo ? '' : 'filter brightness-0 invert' }}" />
                 </div>
                 <p class="text-neutral-300 mb-6 leading-relaxed max-w-md">
                     Şüphesiz azığın en hayırlısı takvâdır. (Bakara 197)

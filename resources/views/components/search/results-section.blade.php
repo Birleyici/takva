@@ -39,7 +39,7 @@
                 @if($type === 'articles')
                     <a href="{{ route('articles.show', $item) }}" class="group flex flex-col md:flex-row bg-white border border-neutral-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                         <div class="md:w-48 h-48 md:h-auto overflow-hidden">
-                            <img src="{{ $item->featureImage?->url ?? 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=600&q=80' }}"
+                            <img src="{{ $item->featureImage?->url ?? '/placeholder.jpg' }}"
                                  alt="{{ $item->title }}"
                                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         </div>
@@ -55,7 +55,7 @@
                     <a href="{{ route('issues.show', $item) }}" class="bg-white border border-neutral-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4">
                         <div class="flex items-center gap-4">
                             <div class="w-16 h-20 overflow-hidden rounded-lg bg-neutral-100">
-                                <img src="{{ $item->coverImage?->url ?? 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=600&q=80' }}" alt="{{ $item->title }}" class="w-full h-full object-cover">
+                                <img src="{{ $item->coverImage?->url ?? '/placeholder.jpg' }}" alt="{{ $item->title }}" class="w-full h-full object-cover">
                             </div>
                             <div>
                                 <p class="text-sm text-neutral-500">{{ $item->month_name ?? '' }} {{ $item->year }}</p>

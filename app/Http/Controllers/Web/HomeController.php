@@ -23,7 +23,7 @@ class HomeController extends Controller
             ->where('is_published', true)
             ->orderByDesc('published_at')
             ->orderByDesc('created_at')
-            ->take(3)
+            ->take(6)
             ->get();
 
         $popularArticles = Article::query()
@@ -44,7 +44,7 @@ class HomeController extends Controller
             ->orderByDesc('year')
             ->orderByDesc('month')
             ->orderByDesc('created_at')
-            ->take(3)
+            ->take(6)
             ->get();
 
         return view('home', [

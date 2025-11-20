@@ -55,7 +55,7 @@
                                 <article class="group rounded-3xl border border-neutral-200 bg-white shadow-sm overflow-hidden transition hover:-translate-y-1 hover:shadow-xl">
                                     <a href="{{ route('articles.show', $article->slug) }}" class="block relative">
                                         <img
-                                            src="{{ $article->featureImage->url ?? 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=900&q=80' }}"
+                                            src="{{ $article->featureImage->url ?? '/placeholder.jpg' }}"
                                             alt="{{ $article->title }}"
                                             class="h-52 w-full object-cover transition duration-500 group-hover:scale-105"
                                         >
@@ -164,7 +164,7 @@
                             @foreach($popularArticles as $popular)
                                 <a href="{{ route('articles.show', $popular->slug) }}" class="flex items-center gap-3 rounded-xl border border-transparent px-3 py-2 text-sm text-secondary-700 hover:border-primary-200 hover:bg-primary-50/60 hover:text-primary-700 transition">
                                     <div class="h-12 w-12 overflow-hidden rounded-xl bg-neutral-100">
-                                        <img src="{{ $popular->featureImage->url ?? 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=200&q=80' }}" alt="{{ $popular->title }}" class="h-full w-full object-cover">
+                                        <img src="{{ $popular->featureImage->url ?? '/placeholder.jpg' }}" alt="{{ $popular->title }}" class="h-full w-full object-cover">
                                     </div>
                                     <div>
                                         <p class="font-medium line-clamp-2">{{ $popular->title }}</p>

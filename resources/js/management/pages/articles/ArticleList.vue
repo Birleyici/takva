@@ -233,7 +233,9 @@ const formatDate = (value) => {
                                 class="hover:bg-neutral-50/60 transition">
                                 <td class="px-6 py-5">
                                     <div class="flex items-center gap-3">
-                                        <div class="h-12 w-12 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100">
+                                        <div
+                                            class="aspect-square w-14 flex-shrink-0 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100"
+                                        >
                                             <img
                                                 v-if="article.feature_image?.url"
                                                 :src="article.feature_image.url"

@@ -1,3 +1,8 @@
+@php
+    $hasCustomLogo = filled(optional($siteSettings)->logo_url ?? null);
+    $navigationLogo = $hasCustomLogo ? $siteSettings->logo_url : asset('logo.png');
+@endphp
+
 <!-- Navigation - Transparent Header -->
 <nav class="absolute top-0 left-0 right-0 z-50 bg-transparent">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -7,9 +12,9 @@
                     <div class="flex items-center space-x-3">
                         <!-- Takva Logo -->
                         <img 
-                            src="https://www.takvadergisi.org/images/takva-logo-red.png" 
+                            src="{{ $navigationLogo }}" 
                             alt="Takva Dergisi Logo" 
-                            class="h-12 w-auto filter brightness-0 invert"
+                            class="h-12 w-auto object-contain {{ $hasCustomLogo ? '' : 'filter brightness-0 invert' }}"
                         />
                     </div>
                 </a>
@@ -61,6 +66,15 @@
                 <a href="{{ route('contact.show') }}" class="text-white hover:text-accent-400 transition-colors font-medium">
                     İletişim
                 </a>
+
+                <div class="hidden lg:block">
+                    <div
+                        class="search-component"
+                        data-search-component="true"
+                        data-search-endpoint="{{ route('search.api') }}"
+                        data-search-page="{{ route('search.index') }}"
+                    ></div>
+                </div>
                 
                 <!-- CTA Button -->
                 <a href="{{ route('contact.show') }}" class="bg-accent-500 hover:bg-accent-600 text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-lg">
@@ -68,12 +82,19 @@
                 </a>
             </div>
             
-            <!-- Mobile Menu Button -->
-            <button class="md:hidden text-white">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
-            </button>
+            <div class="md:hidden flex items-center gap-3">
+                <div
+                    class="search-component"
+                    data-search-component="true"
+                    data-search-endpoint="{{ route('search.api') }}"
+                    data-search-page="{{ route('search.index') }}"
+                ></div>
+                <button class="text-white" aria-label="Menüyü aç">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
     </div>
 </nav>

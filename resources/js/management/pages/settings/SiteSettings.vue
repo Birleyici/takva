@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, reactive, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { useSiteSettingStore } from '../../stores/siteSettingStore';
 
 const siteSettingStore = useSiteSettingStore();
@@ -10,6 +10,7 @@ const form = reactive({
     contact_address: '',
     contact_map_embed: '',
     contact_hero_text: '',
+    logo_url: '',
     social_twitter: '',
     social_instagram: '',
     social_youtube: '',
@@ -21,11 +22,70 @@ const loading = ref(true);
 const saving = ref(false);
 const loadError = ref('');
 const successMessage = ref('');
+const logoFile = ref(null);
+const removeLogo = ref(false);
+const logoPreview = ref('');
+const logoObjectUrl = ref('');
+const logoInputRef = ref(null);
+
+const canRemoveLogo = computed(() => removeLogo.value || !!form.logo_url || !!logoFile.value);
+
+function revokeLogoObjectUrl() {
+    if (logoObjectUrl.value) {
+        URL.revokeObjectURL(logoObjectUrl.value);
+        logoObjectUrl.value = '';
+    }
+}
+
+function refreshLogoPreview() {
+    revokeLogoObjectUrl();
+
+    if (logoFile.value) {
+        logoObjectUrl.value = URL.createObjectURL(logoFile.value);
+        logoPreview.value = logoObjectUrl.value;
+        return;
+    }
+
+    if (!removeLogo.value && form.logo_url) {
+        logoPreview.value = form.logo_url;
+        return;
+    }
+
+    logoPreview.value = '';
+}
+
+function handleLogoChange(event) {
+    const [file] = event.target.files ?? [];
+    logoFile.value = file || null;
+    removeLogo.value = false;
+    refreshLogoPreview();
+}
+
+function toggleRemoveLogo() {
+    if (!canRemoveLogo.value && !removeLogo.value) {
+        return;
+    }
+
+    if (removeLogo.value) {
+        removeLogo.value = false;
+    } else {
+        removeLogo.value = true;
+        logoFile.value = null;
+        if (logoInputRef.value) {
+            logoInputRef.value.value = '';
+        }
+    }
+
+    refreshLogoPreview();
+}
 
 onMounted(async () => {
     try {
         const data = await siteSettingStore.fetchSettings();
         Object.assign(form, data ?? {});
+        removeLogo.value = false;
+        logoFile.value = null;
+        refreshLogoPreview();
     } catch (error) {
         loadError.value = siteSettingStore.error || 'Ayarlar yüklenemedi.';
     } finally {
@@ -33,13 +93,46 @@ onMounted(async () => {
     }
 });
 
+onBeforeUnmount(() => {
+    revokeLogoObjectUrl();
+});
+
 async function handleSubmit() {
     saving.value = true;
     successMessage.value = '';
+    loadError.value = '';
 
     try {
-        await siteSettingStore.updateSettings(form);
+        const payload = {
+            contact_email: form.contact_email ?? '',
+            contact_phone: form.contact_phone ?? '',
+            contact_address: form.contact_address ?? '',
+            contact_map_embed: form.contact_map_embed ?? '',
+            contact_hero_text: form.contact_hero_text ?? '',
+            social_twitter: form.social_twitter ?? '',
+            social_instagram: form.social_instagram ?? '',
+            social_youtube: form.social_youtube ?? '',
+            social_facebook: form.social_facebook ?? '',
+            social_whatsapp: form.social_whatsapp ?? '',
+            remove_logo: removeLogo.value ? 1 : 0,
+        };
+
+        if (logoFile.value) {
+            payload.logo = logoFile.value;
+        }
+
+        const updated = await siteSettingStore.updateSettings(payload);
+        if (updated) {
+            Object.assign(form, updated);
+        }
+
         successMessage.value = 'Ayarlar kaydedildi.';
+        removeLogo.value = false;
+        logoFile.value = null;
+        if (logoInputRef.value) {
+            logoInputRef.value.value = '';
+        }
+        refreshLogoPreview();
     } catch (error) {
         loadError.value = siteSettingStore.error || 'Ayarlar güncellenemedi.';
     } finally {
@@ -68,6 +161,47 @@ async function handleSubmit() {
                 {{ successMessage }}
             </div>
             <form class="space-y-6" @submit.prevent="handleSubmit">
+                <div>
+                    <label class="block text-sm font-semibold text-neutral-700">Site Logosu</label>
+                    <div class="mt-3 flex flex-col gap-4 sm:flex-row sm:items-center">
+                        <div class="flex h-28 w-28 items-center justify-center rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 p-3">
+                            <img
+                                v-if="logoPreview"
+                                :src="logoPreview"
+                                alt="Logo ön izlemesi"
+                                class="max-h-full max-w-full object-contain"
+                            />
+                            <span v-else class="text-center text-xs font-medium text-neutral-400">Logo yüklenmemiş</span>
+                        </div>
+                        <div class="flex flex-col gap-3 text-sm text-neutral-500">
+                            <label
+                                class="inline-flex cursor-pointer items-center justify-center rounded-xl border border-neutral-200 px-4 py-2 font-semibold text-secondary-900 shadow-sm transition hover:border-primary-300 hover:text-primary-600"
+                            >
+                                <input
+                                    ref="logoInputRef"
+                                    type="file"
+                                    accept="image/*"
+                                    class="sr-only"
+                                    @change="handleLogoChange"
+                                />
+                                Yeni Logo Yükle
+                            </label>
+                            <button
+                                type="button"
+                                class="inline-flex items-center justify-center rounded-xl border border-neutral-200 px-4 py-2 font-semibold text-secondary-700 transition hover:border-rose-200 hover:text-rose-600 disabled:opacity-50"
+                                :disabled="!canRemoveLogo && !removeLogo"
+                                @click="toggleRemoveLogo"
+                            >
+                                {{ removeLogo ? 'Kaldırmayı İptal Et' : 'Logoyu Kaldır' }}
+                            </button>
+                            <p class="text-xs text-neutral-400">PNG, JPG veya SVG formatında maksimum 5MB.</p>
+                            <p v-if="removeLogo" class="text-xs text-rose-500">
+                                Kaydettiğinizde mevcut logo kaldırılacak.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div>
                         <label class="block text-sm font-semibold text-neutral-700">E-posta</label>
@@ -110,15 +244,15 @@ async function handleSubmit() {
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold text-neutral-700">Google Maps Embed Linki</label>
+                    <label class="block text-sm font-semibold text-neutral-700">Google Maps Embed Kodu</label>
                     <textarea
                         v-model="form.contact_map_embed"
                         rows="3"
                         class="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-secondary-900 shadow-sm transition focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-200"
-                        placeholder="https://www.google.com/maps/embed?..."
+                        placeholder="&lt;iframe src='https://www.google.com/maps/embed?...' width='600' height='450' style='border:0;' allowfullscreen loading='lazy'&gt;&lt;/iframe&gt;"
                     ></textarea>
                     <p class="mt-2 text-xs text-neutral-400">
-                        Google Maps > Paylaş > Embed kodundaki src içeriğini buraya yapıştırın.
+                        Google Maps &gt; Paylaş &gt; Embed adımlarından aldığınız iframe kodunu (veya sadece src bağlantısını) buraya yapıştırabilirsiniz.
                     </p>
                 </div>
 

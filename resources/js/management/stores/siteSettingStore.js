@@ -28,7 +28,26 @@ export const useSiteSettingStore = defineStore('siteSettingStore', {
             this.error = null;
 
             try {
-                const response = await axios.put('/management/api/site-settings', payload);
+                const formData = new FormData();
+
+                Object.entries(payload).forEach(([key, value]) => {
+                    if (value === undefined) {
+                        return;
+                    }
+
+                    if (typeof File !== 'undefined' && value instanceof File) {
+                        formData.append(key, value);
+                        return;
+                    }
+
+                    formData.append(key, value ?? '');
+                });
+
+                formData.append('_method', 'PUT');
+
+                const response = await axios.post('/management/api/site-settings', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                });
                 this.settings = response.data.data;
                 return this.settings;
             } catch (error) {

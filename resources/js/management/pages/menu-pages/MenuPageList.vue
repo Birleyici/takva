@@ -142,7 +142,7 @@ async function goToPage(page) {
             </div>
         </header>
 
-        <div class="rounded-3xl border border-neutral-200 bg-white shadow-sm">
+        <div class="min-w-0 rounded-3xl border border-neutral-200 bg-white shadow-sm">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-neutral-100">
                     <thead class="bg-neutral-50/80">

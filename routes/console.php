@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Article;
+use App\Services\ArticleContentNormalizer;
 use App\Services\Legacy\LegacyImportService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -45,3 +47,37 @@ Artisan::command('legacy:import {--only=} {--fresh : Truncate target tables befo
         throw $exception;
     }
 })->purpose('Import content from the legacy Takva site dump');
+
+Artisan::command('articles:normalize-content {--chunk=100} {--dry-run : Run without persisting changes}', function (ArticleContentNormalizer $normalizer) {
+    $chunk = max(1, (int) $this->option('chunk'));
+    $dryRun = (bool) $this->option('dry-run');
+
+    $this->info('Scanning articles for legacy spacing...');
+
+    $scanned = 0;
+    $updated = 0;
+
+    $command = $this;
+
+    Article::query()
+        ->orderBy('id')
+        ->chunkById($chunk, function ($articles) use (&$scanned, &$updated, $dryRun, $normalizer, $command) {
+            foreach ($articles as $article) {
+                $scanned++;
+                $normalized = $normalizer->normalize($article->content);
+
+                if ($normalized !== $article->content) {
+                    $updated++;
+                    $command->line(sprintf(' - #%d \"%s\"', $article->id, $article->title));
+
+                    if (!$dryRun) {
+                        $article->content = $normalized;
+                        $article->save();
+                    }
+                }
+            }
+        });
+
+    $summary = $dryRun ? 'Would update' : 'Updated';
+    $this->info(sprintf('%s %d / %d articles.', $summary, $updated, $scanned));
+})->purpose('Normalize legacy article HTML for the management editor');

@@ -14,11 +14,9 @@
 @section('content')
     <x-sections.hero :latest-issue="$latestIssue" />
 
+    <x-sections.latest-issues :issues="$latestIssues" />
+
     <x-sections.latest-articles
         :latest-articles="$latestArticles"
         :popular-articles="$popularArticles" />
-
-    <x-sections.latest-issues :issues="$latestIssues" />
-
-    <x-sections.newsletter />
 @endsection

@@ -41,7 +41,8 @@ Route::get('/sayilar/{issue:slug}', [WebIssueController::class, 'show'])->name('
 
 Route::get('/tr/menu/{menuPage:slug}', [WebMenuPageController::class, 'show'])->name('menu.show');
 Route::get('/tr/iletisim', ContactController::class)->name('contact.show');
-Route::get('/ara', SearchController::class)->name('search.index');
+Route::get('/ara', [SearchController::class, 'index'])->name('search.index');
+Route::get('/api/search', [SearchController::class, 'api'])->name('search.api');
 
 Route::get('/dashboard', function () {
     return redirect()->route('management.dashboard');

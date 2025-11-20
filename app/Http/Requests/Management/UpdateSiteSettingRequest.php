@@ -19,6 +19,8 @@ class UpdateSiteSettingRequest extends FormRequest
             'contact_address' => ['nullable', 'string', 'max:255'],
             'contact_map_embed' => ['nullable', 'string'],
             'contact_hero_text' => ['nullable', 'string'],
+            'logo' => ['nullable', 'image', 'max:5120'],
+            'remove_logo' => ['nullable', 'boolean'],
             'social_twitter' => ['nullable', 'url'],
             'social_instagram' => ['nullable', 'url'],
             'social_youtube' => ['nullable', 'url'],

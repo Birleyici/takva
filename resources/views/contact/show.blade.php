@@ -4,7 +4,8 @@
     $contactEmail = $settings->contact_email ?? 'takvasorucevap@gmail.com';
     $contactPhone = $settings->contact_phone ?? '05528227442';
     $contactAddress = $settings->contact_address ?? "Tatlıcak Mh. Uluyatır Sk. No:42/A\nKaratay / KONYA";
-    $contactMap = $settings->contact_map_embed ?? 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3149.156453270041!2d32.55908747641665!3d37.880023706089375!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14d09b0075c61bc1%3A0xcc7271a74eb4ea46!2sTakva%20Dergisi!5e0!3m2!1str!2str!4v1750237294648';
+    $contactMap = trim($settings->contact_map_embed ?? 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3149.156453270041!2d32.55908747641665!3d37.880023706089375!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14d09b0075c61bc1%3A0xcc7271a74eb4ea46!2sTakva%20Dergisi!5e0!3m2!1str!2str!4v1750237294648');
+    $contactMapHasIframe = str_contains(strtolower($contactMap), '<iframe');
     $heroText = $settings->contact_hero_text ?? 'Görüş, öneri ve katkılarınızı memnuniyetle dinliyoruz. Aşağıdaki kanallardan ekibimize ulaşabilirsiniz.';
     $socialTwitter = $settings->social_twitter ?? 'https://x.com/takvadergisi1';
     $socialInstagram = $settings->social_instagram ?? 'https://www.instagram.com/takvadergisi1/';
@@ -21,7 +22,7 @@
 @section('content')
     <section class="relative overflow-hidden bg-secondary-900 text-white">
         <div class="absolute inset-0">
-            <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=1600&q=80" alt="İletişim" class="h-full w-full object-cover opacity-20">
+            <img src="/placeholder.jpg" alt="İletişim" class="h-full w-full object-cover opacity-20">
             <div class="absolute inset-0 bg-secondary-900/85"></div>
         </div>
         <div class="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20 text-center">
@@ -120,14 +121,18 @@
                     <h2 class="text-2xl font-semibold text-secondary-900">Harita</h2>
                     <p class="mt-2 text-sm text-neutral-500">Ziyaret ve yazışmalar için konumumuzu aşağıda bulabilirsiniz.</p>
                     <div class="mt-6 overflow-hidden rounded-2xl border border-neutral-100 shadow">
-                        <iframe
-                            src="{{ $contactMap }}"
-                            width="100%"
-                            height="340"
-                            style="border:0;"
-                            allowfullscreen=""
-                            loading="lazy"
-                            referrerpolicy="no-referrer-when-downgrade"></iframe>
+                        @if ($contactMapHasIframe)
+                            {!! $contactMap !!}
+                        @else
+                            <iframe
+                                src="{{ $contactMap }}"
+                                width="100%"
+                                height="340"
+                                style="border:0;"
+                                allowfullscreen=""
+                                loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade"></iframe>
+                        @endif
                     </div>
                 </div>
             </div>

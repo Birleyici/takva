@@ -3,21 +3,28 @@
 namespace App\Services;
 
 use App\DTOs\ArticleDTO;
+use App\Models\Article;
+use App\Models\Author;
 use App\Repositories\Interfaces\ArticleRepositoryInterface;
 use App\Repositories\Interfaces\AuthorRepositoryInterface;
 use App\Repositories\Interfaces\CategoryRepositoryInterface;
 use App\Repositories\Interfaces\MediaAssetRepositoryInterface;
+use Illuminate\Container\Attributes\Log;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Log as FacadesLog;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 class ArticleService
 {
+    private ?Author $resolvedAuthor = null;
+
     public function __construct(
         private readonly ArticleRepositoryInterface $articleRepository,
         private readonly CategoryRepositoryInterface $categoryRepository,
         private readonly AuthorRepositoryInterface $authorRepository,
         private readonly MediaAssetRepositoryInterface $mediaRepository,
+        private readonly ArticleContentNormalizer $contentNormalizer,
     ) {
     }
 
@@ -36,13 +43,21 @@ class ArticleService
 
     public function update(int $id, array $data): ArticleDTO
     {
+        //data logla
+        FacadesLog::info('Updating article data', ['data' => $data]);
+
         $article = $this->articleRepository->findById($id);
+
+        //article komple logla
+        FacadesLog::info('Updating article', ['article' => $article, 'data' => $data]);
 
         if (!$article) {
             throw new InvalidArgumentException('Makale bulunamadı.');
         }
 
         $payload = $this->preparePayload($data, $article->slug, $article->id);
+       
+        FacadesLog::info('Prepared payload for update', ['payload' => $payload]);   
         $article = $this->articleRepository->update($article, $payload);
 
         return ArticleDTO::fromModel($article);
@@ -67,6 +82,8 @@ class ArticleService
             throw new InvalidArgumentException('Makale bulunamadı.');
         }
 
+        $this->ensureArticleContentIsNormalized($article);
+
         return ArticleDTO::fromModel($article);
     }
 
@@ -86,11 +103,13 @@ class ArticleService
             'published_at' => $data['published_at'] ?? null,
         ];
 
-        $slugInput = $data['slug'] ?? $data['title'];
-        $payload['slug'] = $this->generateUniqueSlug($slugInput, $currentSlug, $articleId);
-
+        $payload['content'] = $this->contentNormalizer->normalize($payload['content']);
         $payload['category_id'] = $this->resolveCategoryId($data['category_id'] ?? null);
         $payload['author_id'] = $this->resolveAuthorId($data['author_id'] ?? null);
+
+        $slugInput = $data['slug'] ?? $data['title'];
+        $authorSlug = $this->resolvedAuthor?->slug;
+        $payload['slug'] = $this->generateUniqueSlug($slugInput, $authorSlug, $currentSlug, $articleId);
         $payload['feature_image_id'] = $this->resolveMediaId($data['feature_image_id'] ?? null);
 
         if ($payload['is_published'] && empty($payload['published_at'])) {
@@ -100,11 +119,18 @@ class ArticleService
         return $payload;
     }
 
-    private function generateUniqueSlug(string $value, ?string $currentSlug = null, ?int $articleId = null): string
+    private function generateUniqueSlug(string $value, ?string $authorSlug = null, ?string $currentSlug = null, ?int $articleId = null): string
     {
         $baseSlug = Str::slug($value);
         if ($baseSlug === '') {
             $baseSlug = Str::uuid()->toString();
+        }
+
+        if ($authorSlug) {
+            $authorSlug = Str::slug($authorSlug);
+            if ($authorSlug !== '' && !Str::endsWith($baseSlug, '-'.$authorSlug)) {
+                $baseSlug = trim($baseSlug.'-'.$authorSlug, '-');
+            }
         }
 
         if ($currentSlug === $baseSlug) {
@@ -139,6 +165,8 @@ class ArticleService
 
     private function resolveAuthorId($authorId): ?int
     {
+        $this->resolvedAuthor = null;
+
         if ($authorId === null || $authorId === '') {
             return null;
         }
@@ -148,6 +176,8 @@ class ArticleService
         if (!$author) {
             throw new InvalidArgumentException('Seçilen yazar bulunamadı.');
         }
+
+        $this->resolvedAuthor = $author;
 
         return $author->id;
     }
@@ -165,5 +195,15 @@ class ArticleService
         }
 
         return $media->id;
+    }
+
+    private function ensureArticleContentIsNormalized(Article $article): void
+    {
+        $normalized = $this->contentNormalizer->normalize($article->content);
+
+        if ($normalized !== $article->content) {
+            $article->content = $normalized;
+            $article->save();
+        }
     }
 }

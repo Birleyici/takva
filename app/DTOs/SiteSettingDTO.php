@@ -12,6 +12,8 @@ class SiteSettingDTO
     public ?string $contact_address = null;
     public ?string $contact_map_embed = null;
     public ?string $contact_hero_text = null;
+    public ?string $logo_path = null;
+    public ?string $logo_url = null;
     public ?string $social_twitter = null;
     public ?string $social_instagram = null;
     public ?string $social_youtube = null;
@@ -42,6 +44,8 @@ class SiteSettingDTO
         $dto->contact_address = $data['contact_address'] ?? null;
         $dto->contact_map_embed = $data['contact_map_embed'] ?? null;
         $dto->contact_hero_text = $data['contact_hero_text'] ?? null;
+        $dto->logo_path = $data['logo_path'] ?? null;
+        $dto->logo_url = $data['logo_url'] ?? null;
         $dto->social_twitter = $data['social_twitter'] ?? null;
         $dto->social_instagram = $data['social_instagram'] ?? null;
         $dto->social_youtube = $data['social_youtube'] ?? null;
@@ -62,6 +66,8 @@ class SiteSettingDTO
             'contact_address' => $this->contact_address,
             'contact_map_embed' => $this->contact_map_embed,
             'contact_hero_text' => $this->contact_hero_text,
+            'logo_path' => $this->logo_path,
+            'logo_url' => $this->logo_url,
             'social_twitter' => $this->social_twitter,
             'social_instagram' => $this->social_instagram,
             'social_youtube' => $this->social_youtube,

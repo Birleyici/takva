@@ -7,7 +7,7 @@
 @section('content')
     <section class="relative overflow-hidden bg-secondary-900 text-white">
         <div class="absolute inset-0">
-            <img src="{{ $article->featureImage->url ?? 'https://images.unsplash.com/photo-1471107340929-a87cd0f5b5f3?auto=format&fit=crop&w=1200&q=80' }}" alt="{{ $article->title }}" class="h-full w-full object-cover opacity-30">
+            <img src="{{ $article->featureImage->url ?? '/placeholder.jpg' }}" alt="{{ $article->title }}" class="h-full w-full object-cover opacity-30">
             <div class="absolute inset-0 bg-secondary-900/80"></div>
         </div>
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20">
@@ -52,7 +52,7 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <p class="text-xs uppercase tracking-[0.3em] text-primary-500 font-semibold">Benzer Yazılar</p>
+                        <p class="text-xs mt-4 uppercase tracking-[0.3em] text-primary-500 font-semibold">Benzer Yazılar</p>
                         <h2 class="mt-2 text-2xl font-semibold text-secondary-900">İlginizi Çekebilecek Diğer Yazılar</h2>
                     </div>
                     <a href="{{ route('articles.index') }}" class="inline-flex items-center gap-2 text-sm font-semibold text-primary-600 hover:text-primary-700">
@@ -66,7 +66,7 @@
                     @foreach($relatedArticles as $related)
                         <article class="group rounded-2xl border border-neutral-200 bg-white shadow-sm overflow-hidden transition hover:-translate-y-1 hover:shadow-lg">
                             <a href="{{ route('articles.show', $related->slug) }}" class="block">
-                                <img src="{{ $related->featureImage->url ?? 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=600&q=80' }}" alt="{{ $related->title }}" class="h-44 w-full object-cover">
+                                <img src="{{ $related->featureImage->url ?? '/placeholder.jpg' }}" alt="{{ $related->title }}" class="h-44 w-full object-cover">
                                 <div class="p-5 space-y-3">
                                     <p class="text-xs text-neutral-400">{{ optional($related->published_at)->translatedFormat('d F Y') ?? $related->created_at->translatedFormat('d F Y') }}</p>
                                     <h3 class="text-lg font-semibold text-secondary-900 group-hover:text-primary-600 transition leading-snug">

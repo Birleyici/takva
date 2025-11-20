@@ -176,7 +176,7 @@ const formatDate = (value) => {
         </header>
 
         <div class="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-            <div class="rounded-3xl border border-neutral-200 bg-white shadow-sm">
+            <div class="min-w-0 rounded-3xl border border-neutral-200 bg-white shadow-sm">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-neutral-100">
                         <thead class="bg-neutral-50/80">
@@ -290,6 +290,7 @@ const formatDate = (value) => {
 
             <CategoryForm
                 v-if="showForm"
+                class="min-w-0"
                 :category="selectedCategory"
                 :mode="formMode"
                 :fetch-params="formFetchParams"
@@ -298,7 +299,7 @@ const formatDate = (value) => {
             />
             <div
                 v-else
-                class="hidden rounded-3xl border border-dashed border-neutral-200 bg-white p-6 text-sm text-neutral-400 shadow-sm lg:flex lg:flex-col lg:items-center lg:justify-center"
+                class="hidden min-w-0 rounded-3xl border border-dashed border-neutral-200 bg-white p-6 text-sm text-neutral-400 shadow-sm lg:flex lg:flex-col lg:items-center lg:justify-center"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-neutral-200" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">

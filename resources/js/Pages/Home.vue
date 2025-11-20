@@ -116,7 +116,7 @@
                     <div class="flex flex-col lg:flex-row gap-8 items-center">
                         <div class="lg:w-1/2">
                             <img 
-                                src="https://images.unsplash.com/photo-1564769625905-50e93615e769?w=600&h=400&fit=crop" 
+                                src="/placeholder.jpg" 
                                 alt="İslami Bilim Tarihi" 
                                 class="w-full h-64 lg:h-80 object-cover rounded-2xl shadow-lg"
                             />
@@ -141,7 +141,7 @@
                     <div class="flex flex-col lg:flex-row-reverse gap-8 items-center">
                         <div class="lg:w-1/2">
                             <img 
-                                src="https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?w=600&h=400&fit=crop" 
+                                src="/placeholder.jpg" 
                                 alt="İslami Sanat" 
                                 class="w-full h-64 lg:h-80 object-cover rounded-2xl shadow-lg"
                             />
@@ -166,7 +166,7 @@
                     <div class="flex flex-col lg:flex-row gap-8 items-center">
                         <div class="lg:w-1/2">
                             <img 
-                                src="https://images.unsplash.com/photo-1542816417-0983c9c9ad53?w=600&h=400&fit=crop" 
+                                src="/placeholder.jpg" 
                                 alt="İslami Felsefe" 
                                 class="w-full h-64 lg:h-80 object-cover rounded-2xl shadow-lg"
                             />

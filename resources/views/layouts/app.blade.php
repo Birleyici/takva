@@ -18,7 +18,7 @@
     <meta name="twitter:title" content="@yield('twitter_title', 'Takva Dergisi')">
     <meta name="twitter:description" content="@yield('twitter_description', 'İslami bilim, kültür ve düşünce dünyasından en güncel makaleler ve sayılar')">
     
-    @vite(['resources/css/app.css'])
+    @vite(['resources/css/app.css', 'resources/js/site.js'])
     @stack('styles')
 </head>
 <body class="min-h-screen bg-white">

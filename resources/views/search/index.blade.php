@@ -4,28 +4,31 @@
 @section('description', 'Takva Dergisi arama sonuçları sayfası')
 
 @section('content')
-    <section class="bg-gradient-to-br from-neutral-50 via-white to-primary-50 py-16">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 class="text-4xl md:text-5xl font-heading font-bold text-secondary-900 mb-6">
+    <section class="relative py-20 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-secondary-900/90 via-secondary-800/80 to-primary-900/70"></div>
+        <div class="absolute inset-0 islamic-pattern-1 opacity-10"></div>
+        <div class="absolute inset-0 arabesque-pattern opacity-10"></div>
+        <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl md:text-5xl font-heading font-bold text-white mb-6">
                 İçerik Arama
             </h1>
-            <p class="text-lg text-secondary-600 mb-8">
+            <p class="text-lg text-white/80 mb-8">
                 Makaleler, sayılar, yazarlar ve konular arasında dilediğiniz anahtar kelimeyi arayın.
             </p>
             <form action="{{ route('search.index') }}" method="GET" class="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
                 <input type="search"
                        name="q"
                        value="{{ $query }}"
-                       placeholder="Örneğin: Ramazan, Bilal Özbuğday, Takva 32. Sayı"
-                       class="flex-1 px-6 py-4 rounded-lg border border-neutral-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:outline-none text-secondary-700">
-                <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-lg font-semibold transition-colors">
+                       placeholder="Aradığınız kelimeyi yazın..."
+                       class="flex-1 px-6 py-4 rounded-lg border border-white/30 bg-white/10 text-white placeholder-white/70 focus:ring-2 focus:ring-primary-400 focus:border-primary-400 focus:outline-none">
+                <button type="submit" class="bg-accent-500 hover:bg-accent-600 text-white px-8 py-4 rounded-lg font-semibold transition-colors">
                     Ara
                 </button>
             </form>
             @if($query === '')
-                <p class="text-secondary-500 mt-6">Aramak istediğiniz kelimeyi yazıp enter'a basın.</p>
+                <p class="text-white/70 mt-6">Aramak istediğiniz kelimeyi yazıp enter'a basın.</p>
             @else
-                <p class="text-secondary-500 mt-6">
+                <p class="text-white/80 mt-6">
                     "{{ $query }}" için {{ $totalResults }} sonuç bulundu.
                 </p>
             @endif
