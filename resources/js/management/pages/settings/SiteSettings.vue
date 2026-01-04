@@ -11,6 +11,7 @@ const form = reactive({
     contact_map_embed: '',
     contact_hero_text: '',
     logo_url: '',
+    hero_background_url: '',
     social_twitter: '',
     social_instagram: '',
     social_youtube: '',
@@ -29,6 +30,16 @@ const logoObjectUrl = ref('');
 const logoInputRef = ref(null);
 
 const canRemoveLogo = computed(() => removeLogo.value || !!form.logo_url || !!logoFile.value);
+
+const heroBackgroundFile = ref(null);
+const removeHeroBackground = ref(false);
+const heroBackgroundPreview = ref('');
+const heroBackgroundObjectUrl = ref('');
+const heroBackgroundInputRef = ref(null);
+
+const canRemoveHeroBackground = computed(
+    () => removeHeroBackground.value || !!form.hero_background_url || !!heroBackgroundFile.value
+);
 
 function revokeLogoObjectUrl() {
     if (logoObjectUrl.value) {
@@ -79,6 +90,55 @@ function toggleRemoveLogo() {
     refreshLogoPreview();
 }
 
+function revokeHeroBackgroundObjectUrl() {
+    if (heroBackgroundObjectUrl.value) {
+        URL.revokeObjectURL(heroBackgroundObjectUrl.value);
+        heroBackgroundObjectUrl.value = '';
+    }
+}
+
+function refreshHeroBackgroundPreview() {
+    revokeHeroBackgroundObjectUrl();
+
+    if (heroBackgroundFile.value) {
+        heroBackgroundObjectUrl.value = URL.createObjectURL(heroBackgroundFile.value);
+        heroBackgroundPreview.value = heroBackgroundObjectUrl.value;
+        return;
+    }
+
+    if (!removeHeroBackground.value && form.hero_background_url) {
+        heroBackgroundPreview.value = form.hero_background_url;
+        return;
+    }
+
+    heroBackgroundPreview.value = '';
+}
+
+function handleHeroBackgroundChange(event) {
+    const [file] = event.target.files ?? [];
+    heroBackgroundFile.value = file || null;
+    removeHeroBackground.value = false;
+    refreshHeroBackgroundPreview();
+}
+
+function toggleRemoveHeroBackground() {
+    if (!canRemoveHeroBackground.value && !removeHeroBackground.value) {
+        return;
+    }
+
+    if (removeHeroBackground.value) {
+        removeHeroBackground.value = false;
+    } else {
+        removeHeroBackground.value = true;
+        heroBackgroundFile.value = null;
+        if (heroBackgroundInputRef.value) {
+            heroBackgroundInputRef.value.value = '';
+        }
+    }
+
+    refreshHeroBackgroundPreview();
+}
+
 onMounted(async () => {
     try {
         const data = await siteSettingStore.fetchSettings();
@@ -86,6 +146,9 @@ onMounted(async () => {
         removeLogo.value = false;
         logoFile.value = null;
         refreshLogoPreview();
+        removeHeroBackground.value = false;
+        heroBackgroundFile.value = null;
+        refreshHeroBackgroundPreview();
     } catch (error) {
         loadError.value = siteSettingStore.error || 'Ayarlar yüklenemedi.';
     } finally {
@@ -95,6 +158,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
     revokeLogoObjectUrl();
+    revokeHeroBackgroundObjectUrl();
 });
 
 async function handleSubmit() {
@@ -115,10 +179,15 @@ async function handleSubmit() {
             social_facebook: form.social_facebook ?? '',
             social_whatsapp: form.social_whatsapp ?? '',
             remove_logo: removeLogo.value ? 1 : 0,
+            remove_hero_background: removeHeroBackground.value ? 1 : 0,
         };
 
         if (logoFile.value) {
             payload.logo = logoFile.value;
+        }
+
+        if (heroBackgroundFile.value) {
+            payload.hero_background = heroBackgroundFile.value;
         }
 
         const updated = await siteSettingStore.updateSettings(payload);
@@ -133,6 +202,12 @@ async function handleSubmit() {
             logoInputRef.value.value = '';
         }
         refreshLogoPreview();
+        removeHeroBackground.value = false;
+        heroBackgroundFile.value = null;
+        if (heroBackgroundInputRef.value) {
+            heroBackgroundInputRef.value.value = '';
+        }
+        refreshHeroBackgroundPreview();
     } catch (error) {
         loadError.value = siteSettingStore.error || 'Ayarlar güncellenemedi.';
     } finally {
@@ -197,6 +272,50 @@ async function handleSubmit() {
                             <p class="text-xs text-neutral-400">PNG, JPG veya SVG formatında maksimum 5MB.</p>
                             <p v-if="removeLogo" class="text-xs text-rose-500">
                                 Kaydettiğinizde mevcut logo kaldırılacak.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-neutral-700">Ana Sayfa Hero Arka Planı</label>
+                    <p class="mt-1 text-xs text-neutral-500">
+                        Arka plan görseli ana sayfa hero bölümünde kullanılır. Yüksek çözünürlüklü yatay görseller önerilir.
+                    </p>
+                    <div class="mt-3 flex flex-col gap-4 sm:flex-row sm:items-center">
+                        <div class="flex h-32 w-full items-center justify-center rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 p-3 sm:h-36 sm:w-72 overflow-hidden">
+                            <img
+                                v-if="heroBackgroundPreview"
+                                :src="heroBackgroundPreview"
+                                alt="Hero arka plan ön izlemesi"
+                                class="h-full w-full rounded-xl object-cover"
+                            />
+                            <span v-else class="text-center text-xs font-medium text-neutral-400 px-4">Arka plan görseli yüklenmemiş</span>
+                        </div>
+                        <div class="flex flex-col gap-3 text-sm text-neutral-500">
+                            <label
+                                class="inline-flex cursor-pointer items-center justify-center rounded-xl border border-neutral-200 px-4 py-2 font-semibold text-secondary-900 shadow-sm transition hover:border-primary-300 hover:text-primary-600"
+                            >
+                                <input
+                                    ref="heroBackgroundInputRef"
+                                    type="file"
+                                    accept="image/*"
+                                    class="sr-only"
+                                    @change="handleHeroBackgroundChange"
+                                />
+                                Yeni Arka Plan Yükle
+                            </label>
+                            <button
+                                type="button"
+                                class="inline-flex items-center justify-center rounded-xl border border-neutral-200 px-4 py-2 font-semibold text-secondary-700 transition hover:border-rose-200 hover:text-rose-600 disabled:opacity-50"
+                                :disabled="!canRemoveHeroBackground && !removeHeroBackground"
+                                @click="toggleRemoveHeroBackground"
+                            >
+                                {{ removeHeroBackground ? 'Kaldırmayı İptal Et' : 'Arka Planı Kaldır' }}
+                            </button>
+                            <p class="text-xs text-neutral-400">PNG veya JPG formatında maksimum 6MB. 16:9 oranı önerilir.</p>
+                            <p v-if="removeHeroBackground" class="text-xs text-rose-500">
+                                Kaydettiğinizde mevcut arka plan kaldırılacak.
                             </p>
                         </div>
                     </div>

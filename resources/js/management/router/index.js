@@ -8,10 +8,16 @@ import ArticleEdit from '../pages/articles/ArticleEdit.vue';
 import IssueList from '../pages/issues/IssueList.vue';
 import IssueCreate from '../pages/issues/IssueCreate.vue';
 import IssueEdit from '../pages/issues/IssueEdit.vue';
+import VideoList from '../pages/videos/VideoList.vue';
+import VideoCreate from '../pages/videos/VideoCreate.vue';
+import VideoEdit from '../pages/videos/VideoEdit.vue';
+import VideoCategoryList from '../pages/video-categories/VideoCategoryList.vue';
+import HeroSlideList from '../pages/hero-slides/HeroSlideList.vue';
 import MenuPageList from '../pages/menu-pages/MenuPageList.vue';
 import MenuPageCreate from '../pages/menu-pages/MenuPageCreate.vue';
 import MenuPageEdit from '../pages/menu-pages/MenuPageEdit.vue';
 import SiteSettings from '../pages/settings/SiteSettings.vue';
+import ThemeSettings from '../pages/settings/ThemeSettings.vue';
 import AccountSettings from '../pages/settings/AccountSettings.vue';
 import ContactMessageList from '../pages/contact/ContactMessageList.vue';
 
@@ -98,6 +104,51 @@ const routes = [
         },
     },
     {
+        path: '/videos',
+        name: 'management.videos',
+        component: VideoList,
+        meta: {
+            title: 'Videolar',
+            breadcrumb: 'Videolar',
+        },
+    },
+    {
+        path: '/videos/create',
+        name: 'management.videos.create',
+        component: VideoCreate,
+        meta: {
+            title: 'Video Oluştur',
+            breadcrumb: 'Video Oluştur',
+        },
+    },
+    {
+        path: '/videos/:video/edit',
+        name: 'management.videos.edit',
+        component: VideoEdit,
+        meta: {
+            title: 'Video Düzenle',
+            breadcrumb: 'Video Düzenle',
+        },
+    },
+    {
+        path: '/video-categories',
+        name: 'management.video-categories',
+        component: VideoCategoryList,
+        meta: {
+            title: 'Video Kategorileri',
+            breadcrumb: 'Video Kategorileri',
+        },
+    },
+    {
+        path: '/hero-slides',
+        name: 'management.hero-slides',
+        component: HeroSlideList,
+        meta: {
+            title: 'Hero Slider',
+            breadcrumb: 'Hero Slider',
+        },
+    },
+    {
         path: '/menu-pages',
         name: 'management.menu-pages',
         component: MenuPageList,
@@ -140,6 +191,15 @@ const routes = [
         meta: {
             title: 'Site Ayarları',
             breadcrumb: 'Site Ayarları',
+        },
+    },
+    {
+        path: '/settings/theme',
+        name: 'management.settings.theme',
+        component: ThemeSettings,
+        meta: {
+            title: 'Tema Ayarları',
+            breadcrumb: 'Tema Ayarları',
         },
     },
     {

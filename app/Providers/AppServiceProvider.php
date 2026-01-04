@@ -8,21 +8,29 @@ use App\Models\SiteSetting;
 use App\Repositories\ArticleRepository;
 use App\Repositories\AuthorRepository;
 use App\Repositories\CategoryRepository;
+use App\Repositories\HeroSlideRepository;
 use App\Repositories\IssueRepository;
 use App\Repositories\Interfaces\ArticleRepositoryInterface;
 use App\Repositories\Interfaces\ContactMessageRepositoryInterface;
 use App\Repositories\Interfaces\AuthorRepositoryInterface;
 use App\Repositories\Interfaces\CategoryRepositoryInterface;
+use App\Repositories\Interfaces\HeroSlideRepositoryInterface;
 use App\Repositories\Interfaces\IssueRepositoryInterface;
 use App\Repositories\Interfaces\MediaAssetRepositoryInterface;
 use App\Repositories\Interfaces\MenuPageRepositoryInterface;
 use App\Repositories\Interfaces\SiteSettingRepositoryInterface;
+use App\Repositories\Interfaces\VideoCategoryRepositoryInterface;
+use App\Repositories\Interfaces\VideoRepositoryInterface;
 use App\Repositories\MediaAssetRepository;
 use App\Repositories\MenuPageRepository;
 use App\Repositories\ContactMessageRepository;
+use App\Support\TurkishUpper;
 use App\Repositories\SiteSettingRepository;
+use App\Repositories\VideoCategoryRepository;
+use App\Repositories\VideoRepository;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -39,9 +47,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(AuthorRepositoryInterface::class, AuthorRepository::class);
         $this->app->bind(MediaAssetRepositoryInterface::class, MediaAssetRepository::class);
         $this->app->bind(IssueRepositoryInterface::class, IssueRepository::class);
+        $this->app->bind(HeroSlideRepositoryInterface::class, HeroSlideRepository::class);
         $this->app->bind(MenuPageRepositoryInterface::class, MenuPageRepository::class);
         $this->app->bind(SiteSettingRepositoryInterface::class, SiteSettingRepository::class);
         $this->app->bind(ContactMessageRepositoryInterface::class, ContactMessageRepository::class);
+        $this->app->bind(VideoRepositoryInterface::class, VideoRepository::class);
+        $this->app->bind(VideoCategoryRepositoryInterface::class, VideoCategoryRepository::class);
     }
 
     /**
@@ -58,6 +69,9 @@ class AppServiceProvider extends ServiceProvider
         Carbon::setLocale($locale);
         CarbonImmutable::setLocale($locale);
         setlocale(LC_TIME, 'tr_TR.UTF-8', 'tr_TR', 'turkish');
+        Blade::directive('trupper', function ($expression) {
+            return "<?php echo e(" . TurkishUpper::class . "::of({$expression})); ?>";
+        });
 
         Vite::prefetch(concurrency: 3);
 

@@ -11,7 +11,9 @@
             <div class="absolute inset-0 bg-secondary-900/80"></div>
         </div>
         <div class="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20 text-center">
-            <p class="text-xs uppercase tracking-[0.3em] text-accent-200 font-semibold">{{ $issue->year }} · {{ $issue->month_name }}</p>
+            <p class="text-xs uppercase tracking-[0.3em] text-accent-200 font-semibold">
+                @trupper($issue->year . ' · ' . $issue->month_name)
+            </p>
             <h1 class="mt-6 text-4xl sm:text-5xl font-bold leading-tight">{{ $issue->title }}</h1>
             <div class="mt-8 flex flex-wrap justify-center gap-3">
                 @if($issue->pdf_url)

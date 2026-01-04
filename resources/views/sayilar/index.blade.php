@@ -11,7 +11,7 @@
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
             <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                 <div class="max-w-3xl">
-                    <p class="text-xs sm:text-sm uppercase tracking-[0.3em] text-accent-200 font-semibold">Dergi Arşivi</p>
+                    <p class="text-xs sm:text-sm uppercase tracking-[0.3em] text-accent-200 font-semibold">@trupper('Dergi Arşivi')</p>
                     <h1 class="mt-4 text-4xl sm:text-5xl font-bold leading-tight">Sayılarımızı Keşfedin</h1>
                     <p class="mt-4 text-sm sm:text-base text-white/70 leading-relaxed">
                         Geçmiş sayılarımızı yıl ve aya göre filtreleyerek takip edebilir, dilediğiniz sayının PDF'ini görüntüleyebilirsiniz.
@@ -21,7 +21,7 @@
                 <form method="GET" class="w-full max-w-md space-y-3 rounded-3xl border border-white/20 bg-white/5 p-5 backdrop-blur">
                     <div>
                         <label for="year" class="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">Yıl</label>
-                        <select id="year" name="year" class="mt-2 w-full rounded-2xl border border-white/40 bg-white/10 px-4 py-2 text-sm text-white/90 focus:border-accent-200 focus:bg-white/20 focus:outline-none">
+                        <select id="year" name="year" class="mt-2 w-full rounded-2xl border border-white/40 bg-white/80 px-4 py-2 text-sm text-secondary-900 focus:border-accent-200 focus:bg-white focus:outline-none">
                             <option value="">Tümü</option>
                             @foreach($years as $year)
                                 <option value="{{ $year }}" @selected($selectedYear == $year)>{{ $year }}</option>
@@ -30,7 +30,7 @@
                     </div>
                     <div>
                         <label for="month" class="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">Ay</label>
-                        <select id="month" name="month" class="mt-2 w-full rounded-2xl border border-white/40 bg-white/10 px-4 py-2 text-sm text-white/90 focus:border-accent-200 focus:bg-white/20 focus:outline-none">
+                        <select id="month" name="month" class="mt-2 w-full rounded-2xl border border-white/40 bg-white/80 px-4 py-2 text-sm text-secondary-900 focus:border-accent-200 focus:bg-white focus:outline-none">
                             <option value="">Tümü</option>
                             @foreach($months as $value => $label)
                                 <option value="{{ $value }}" @selected($selectedMonth == $value)>{{ $label }}</option>
@@ -70,7 +70,9 @@
                                     <div class="absolute inset-0 bg-gradient-to-br from-primary-600/40 via-secondary-900/60 to-secondary-900/90"></div>
                                 @endif
                                 <div class="absolute inset-0 flex flex-col justify-end px-6 py-5 text-white">
-                                    <p class="text-xs font-semibold uppercase tracking-[0.3em] text-accent-200">{{ $issue->year }} · {{ $issue->month_name }}</p>
+                                    <p class="text-xs font-semibold uppercase tracking-[0.3em] text-accent-200">
+                                        @trupper($issue->year . ' · ' . $issue->month_name)
+                                    </p>
                                     <h2 class="mt-2 text-xl font-semibold leading-snug">
                                         {{ $issue->title }}
                                     </h2>

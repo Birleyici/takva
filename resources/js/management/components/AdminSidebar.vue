@@ -33,9 +33,28 @@ const navigationItems = [
         icon: 'M4 5h16M4 12h16M4 19h10',
     },
     {
+        label: 'Videolar',
+        icon: 'M3 7h18v10H3z M10 9l5 3-5 3z',
+        children: [
+            {
+                label: 'Videolar',
+                to: { name: 'management.videos' },
+            },
+            {
+                label: 'Video Kategorileri',
+                to: { name: 'management.video-categories' },
+            },
+        ],
+    },
+    {
         label: 'Sayılar',
         to: { name: 'management.issues' },
         icon: 'M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm3 4v10m4-10v10m4-10v10',
+    },
+    {
+        label: 'Hero Slider',
+        to: { name: 'management.hero-slides' },
+        icon: 'M3 5h18M3 19h18M5 8h14v8H5z',
     },
     {
         label: 'Menü Sayfaları',
@@ -54,6 +73,10 @@ const navigationItems = [
             {
                 label: 'Site Ayarları',
                 to: { name: 'management.settings.site' },
+            },
+            {
+                label: 'Tema Ayarları',
+                to: { name: 'management.settings.theme' },
             },
             {
                 label: 'Hesap Ayarları',

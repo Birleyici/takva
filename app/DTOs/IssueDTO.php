@@ -10,6 +10,7 @@ class IssueDTO
     public ?int $id = null;
     public ?string $title = null;
     public ?string $slug = null;
+    public ?int $number = null;
     public ?int $year = null;
     public ?int $month = null;
     public ?string $month_name = null;
@@ -47,6 +48,7 @@ class IssueDTO
         $dto->id = $data['id'] ?? null;
         $dto->title = $data['title'] ?? null;
         $dto->slug = $data['slug'] ?? null;
+        $dto->number = $data['number'] ?? null;
         $dto->year = $data['year'] ?? null;
         $dto->month = $data['month'] ?? null;
         $dto->month_name = $data['month_name'] ?? null;
@@ -90,6 +92,7 @@ class IssueDTO
             'id' => $this->id,
             'title' => $this->title,
             'slug' => $this->slug,
+            'number' => $this->number,
             'year' => $this->year,
             'month' => $this->month,
             'month_name' => $this->month_name,

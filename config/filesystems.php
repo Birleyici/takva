@@ -35,13 +35,14 @@ return [
             'root' => storage_path('app/private'),
             'serve' => true,
             'throw' => false,
-            'report' => false,
+            'report' => false, 
         ],
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            // On shared hosting, point directly to the docroot storage folder to avoid symlink issues.
+            'root' => env('FILESYSTEM_PUBLIC_ROOT', public_path('storage')),
+            'url' => env('FILESYSTEM_PUBLIC_URL', env('APP_URL').'/storage'),
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

@@ -89,6 +89,10 @@ class IssueService
             'description' => $data['description'] ?? null,
             'slug' => $this->generateUniqueSlug($data['title'], $existing?->id),
         ];
+        $number = $this->extractNumberFromSlug($payload['slug']);
+        if ($number !== null) {
+            $payload['number'] = $number;
+        }
 
         if (!empty($data['remove_cover_image'])) {
             $payload['cover_image_id'] = null;
@@ -153,5 +157,19 @@ class IssueService
         }
 
         return (int) $value;
+    }
+
+    private function extractNumberFromSlug(string $slug): ?int
+    {
+        if ($slug === '') {
+            return null;
+        }
+
+        if (preg_match('/\\bsayi[-_ ]*0*(\\d{1,4})\\b/i', $slug, $matches)) {
+            $number = (int) $matches[1];
+            return $number > 0 ? $number : null;
+        }
+
+        return null;
     }
 }

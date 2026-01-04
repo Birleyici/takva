@@ -3,6 +3,7 @@
 namespace App\DTOs;
 
 use App\Models\SiteSetting;
+use Illuminate\Support\Facades\Storage;
 
 class SiteSettingDTO
 {
@@ -14,6 +15,9 @@ class SiteSettingDTO
     public ?string $contact_hero_text = null;
     public ?string $logo_path = null;
     public ?string $logo_url = null;
+    public ?string $hero_background_path = null;
+    public ?string $hero_background_url = null;
+    public ?array $theme_settings = null;
     public ?string $social_twitter = null;
     public ?string $social_instagram = null;
     public ?string $social_youtube = null;
@@ -46,6 +50,9 @@ class SiteSettingDTO
         $dto->contact_hero_text = $data['contact_hero_text'] ?? null;
         $dto->logo_path = $data['logo_path'] ?? null;
         $dto->logo_url = $data['logo_url'] ?? null;
+        $dto->hero_background_path = $data['hero_background_path'] ?? null;
+        $dto->hero_background_url = $data['hero_background_url'] ?? null;
+        $dto->theme_settings = self::hydrateThemeSettings($data['theme_settings'] ?? null);
         $dto->social_twitter = $data['social_twitter'] ?? null;
         $dto->social_instagram = $data['social_instagram'] ?? null;
         $dto->social_youtube = $data['social_youtube'] ?? null;
@@ -68,6 +75,9 @@ class SiteSettingDTO
             'contact_hero_text' => $this->contact_hero_text,
             'logo_path' => $this->logo_path,
             'logo_url' => $this->logo_url,
+            'hero_background_path' => $this->hero_background_path,
+            'hero_background_url' => $this->hero_background_url,
+            'theme_settings' => $this->theme_settings,
             'social_twitter' => $this->social_twitter,
             'social_instagram' => $this->social_instagram,
             'social_youtube' => $this->social_youtube,
@@ -76,5 +86,44 @@ class SiteSettingDTO
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
+    }
+
+    private static function hydrateThemeSettings($settings): array
+    {
+        $normalized = is_array($settings) ? $settings : [];
+
+        $normalized['header'] = self::normalizeThemeSection($normalized['header'] ?? null);
+        $normalized['footer'] = self::normalizeThemeSection($normalized['footer'] ?? null);
+        $normalized['home_articles'] = self::normalizeThemeSection($normalized['home_articles'] ?? null);
+        $normalized['home_issues'] = self::normalizeThemeSection($normalized['home_issues'] ?? null);
+        $normalized['home_videos'] = self::normalizeThemeSection($normalized['home_videos'] ?? null);
+
+        return $normalized;
+    }
+
+    private static function normalizeThemeSection($section): array
+    {
+        $section = is_array($section) ? $section : [];
+        $opacity = $section['opacity'] ?? 20;
+        $opacity = is_numeric($opacity) ? (int) round($opacity) : 20;
+        $opacity = max(0, min(100, $opacity));
+
+        $placement = $section['placement'] ?? 'repeat';
+        if ($placement === 'fit') {
+            $placement = 'cover';
+        }
+        if (!in_array($placement, ['repeat', 'cover', 'contain'], true)) {
+            $placement = 'repeat';
+        }
+
+        $patternPath = $section['pattern_path'] ?? null;
+        $patternUrl = $patternPath ? Storage::disk('public')->url($patternPath) : null;
+
+        return array_merge($section, [
+            'pattern_path' => $patternPath,
+            'pattern_url' => $patternUrl,
+            'opacity' => $opacity,
+            'placement' => $placement,
+        ]);
     }
 }

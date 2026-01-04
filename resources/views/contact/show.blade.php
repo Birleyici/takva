@@ -26,7 +26,7 @@
             <div class="absolute inset-0 bg-secondary-900/85"></div>
         </div>
         <div class="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20 text-center">
-            <p class="text-xs uppercase tracking-[0.3em] text-accent-200 font-semibold">Takva Dergisi</p>
+            <p class="text-xs uppercase tracking-[0.3em] text-accent-200 font-semibold">@trupper('Takva Dergisi')</p>
             <h1 class="mt-4 text-4xl sm:text-5xl font-bold leading-tight">Bizimle İletişime Geçin</h1>
             <p class="mt-4 text-sm sm:text-base text-white/70 leading-relaxed">
                 {{ $heroText }}
@@ -34,7 +34,7 @@
         </div>
     </section>
 
-    <section class="py-16 bg-white">
+    <section class="py-16 bg-white overflow-x-hidden">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid gap-8 lg:grid-cols-3">
                 <div class="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
@@ -56,8 +56,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 4.5 8.954 6.106.046.032c.3.205.45.308.622.35.154.038.316.038.47 0 .173-.042.324-.145.628-.349l.048-.033L21.75 4.5M4.5 19.5h15a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-.32-1.168c-.196-.33-.48-.6-.808-.786L12 1.5 3.378 4.796a2.25 2.25 0 0 0-.808.786A2.25 2.25 0 0 0 2.25 6.75v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
                         </svg>
                     </div>
-                    <h3 class="mt-4 text-lg font-semibold text-secondary-900">Abonelik ve İçerik</h3>
-                    <p class="mt-2 text-sm text-neutral-500">Dergi içerikleri ve abonelik hakkında</p>
+                    <h3 class="mt-4 text-lg font-semibold text-secondary-900">İçerik ve Yayınlar</h3>
+                    <p class="mt-2 text-sm text-neutral-500">Dergi içerikleri ve sayılar hakkında</p>
                     <p class="mt-4 text-sm text-secondary-900">
                         <a href="tel:{{ $contactPhone }}" class="hover:text-primary-600">{{ $contactPhone }}</a>
                     </p>
@@ -188,7 +188,7 @@
                 <div class="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
                     <h2 class="text-2xl font-semibold text-secondary-900">Harita</h2>
                     <p class="mt-2 text-sm text-neutral-500">Ziyaret ve yazışmalar için konumumuzu aşağıda bulabilirsiniz.</p>
-                    <div class="mt-6 overflow-hidden rounded-2xl border border-neutral-100 shadow">
+                    <div class="mt-6 overflow-hidden rounded-2xl border border-neutral-100 shadow contact-map-embed">
                         @if ($contactMapHasIframe)
                             {!! $contactMap !!}
                         @else
@@ -196,6 +196,7 @@
                                 src="{{ $contactMap }}"
                                 width="100%"
                                 height="340"
+                                class="block w-full"
                                 style="border:0;"
                                 allowfullscreen=""
                                 loading="lazy"
@@ -207,3 +208,13 @@
         </div>
     </section>
 @endsection
+
+@push('styles')
+<style>
+    .contact-map-embed iframe {
+        width: 100% !important;
+        max-width: 100%;
+        display: block;
+    }
+</style>
+@endpush

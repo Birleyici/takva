@@ -38,8 +38,8 @@
                         </a>
                         
                         <!-- CTA Button -->
-                        <Link :href="route('contact.show')" class="bg-accent-500 hover:bg-accent-600 text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-lg">
-                            Abone Ol
+                        <Link :href="route('issues.latest')" class="bg-accent-500 hover:bg-accent-600 text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-lg">
+                            Son Sayı
                         </Link>
                     </div>
                     
@@ -92,8 +92,8 @@
                             </svg>
                         </span>
                     </button>
-                    <Link :href="route('contact.show')" class="border-2 border-white text-white hover:bg-white hover:text-primary-900 px-12 py-5 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105">
-                        Abone Ol
+                    <Link :href="route('issues.latest')" class="border-2 border-white text-white hover:bg-white hover:text-primary-900 px-12 py-5 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105">
+                        Son Sayı
                     </Link>
                 </div>
             </div>
@@ -312,20 +312,15 @@
             <div class="absolute inset-0 mosque-silhouette"></div>
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                 <h2 class="text-3xl md:text-4xl font-heading font-bold text-secondary-900 mb-4">
-                    Bültenimize <span class="text-primary-500">Abone Olun</span>
+                    Dergi <span class="text-primary-500">Arşivi</span>
                 </h2>
                 <p class="text-xl text-secondary-600 mb-8 leading-relaxed">
-                    Yeni sayılarımızdan ve özel içeriklerimizden haberdar olun
+                    Güncel ve geçmiş sayılarımıza online olarak erişin
                 </p>
                 
-                <div class="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
-                    <input 
-                        type="email" 
-                        placeholder="E-posta adresiniz" 
-                        class="flex-1 px-6 py-4 rounded-lg border border-neutral-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:outline-none text-secondary-700"
-                    >
-                    <Link :href="route('contact.show')" class="bg-primary-500 hover:bg-primary-600 text-white px-8 py-4 rounded-lg font-medium transition-colors text-center">
-                        Abone Ol
+                <div class="flex justify-center">
+                    <Link :href="route('issues.index')" class="bg-primary-500 hover:bg-primary-600 text-white px-8 py-4 rounded-lg font-medium transition-colors text-center">
+                        Sayıları Gör
                     </Link>
                 </div>
             </div>

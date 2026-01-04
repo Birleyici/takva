@@ -1,12 +1,37 @@
-@props(['issues' => null])
+@props(['issues' => null, 'siteSettings' => null])
 
 @php
     $issues = collect($issues);
+    $themeSettings = optional($siteSettings)->theme_settings ?? [];
+    $issuesPattern = $themeSettings['home_issues'] ?? [];
+    $issuesPatternPath = $issuesPattern['pattern_path'] ?? null;
+    $issuesPatternOpacityValue = $issuesPattern['opacity'] ?? null;
+    $issuesPatternOpacity = is_numeric($issuesPatternOpacityValue)
+        ? max(0, min(100, (float) $issuesPatternOpacityValue)) / 100
+        : 0.2;
+    $issuesPatternPlacement = $issuesPattern['placement'] ?? 'repeat';
+    $issuesPatternUrl = $issuesPatternPath
+        ? \Illuminate\Support\Facades\Storage::disk('public')->url($issuesPatternPath)
+        : null;
+    $issuesPatternRepeat = $issuesPatternPlacement === 'repeat' ? 'repeat' : 'no-repeat';
+    $issuesPatternSize = match ($issuesPatternPlacement) {
+        'cover' => 'cover',
+        'contain' => 'contain',
+        default => 'auto',
+    };
+    $issuesPatternPosition = $issuesPatternPlacement === 'repeat' ? 'top left' : 'top center';
+    $showIssuesPattern = $issuesPatternUrl && $issuesPatternOpacity > 0;
+    $issuesPatternStyle = $showIssuesPattern
+        ? "background-image: url('{$issuesPatternUrl}'); background-repeat: {$issuesPatternRepeat}; background-size: {$issuesPatternSize}; background-position: {$issuesPatternPosition}; opacity: {$issuesPatternOpacity};"
+        : '';
 @endphp
 
 <!-- Latest Issues Section - Sade Renkli -->
-<section class="py-20 bg-gradient-to-br from-slate-50 via-gray-50 to-neutral-100 relative overflow-hidden">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<section class="relative overflow-hidden py-20 bg-white">
+    @if ($showIssuesPattern)
+        <div class="absolute left-0 right-0 top-0 h-[400px] max-h-full pointer-events-none" style="{{ $issuesPatternStyle }}"></div>
+    @endif
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
             <h2 class="text-4xl md:text-5xl font-heading font-bold text-secondary-900 mb-6">
                 Son <span class="text-primary-500">Sayılarımız</span>
@@ -32,7 +57,9 @@
                                 <div class="absolute inset-0 bg-gradient-to-br from-primary-600/40 via-secondary-900/60 to-secondary-900/90"></div>
                             @endif
                             <div class="absolute inset-0 flex flex-col justify-end px-6 py-5 text-white">
-                                <p class="text-xs font-semibold uppercase tracking-[0.3em] text-accent-200">{{ $issue->year }} · {{ $issue->month_name }}</p>
+                                <p class="text-xs font-semibold uppercase tracking-[0.3em] text-accent-200">
+                                    @trupper($issue->year . ' · ' . $issue->month_name)
+                                </p>
                                 <h2 class="mt-2 text-xl font-semibold leading-snug">
                                     {{ $issue->title }}
                                 </h2>

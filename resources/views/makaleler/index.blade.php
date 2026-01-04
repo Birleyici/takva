@@ -11,7 +11,7 @@
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
             <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                 <div class="max-w-3xl">
-                    <p class="text-xs sm:text-sm uppercase tracking-[0.3em] text-accent-200 font-semibold">Makaleler</p>
+                    <p class="text-xs sm:text-sm uppercase tracking-[0.3em] text-accent-200 font-semibold">@trupper('Makaleler')</p>
                     <h1 class="mt-4 text-4xl sm:text-5xl font-bold leading-tight">{{ $heroTitle }}</h1>
                     <p class="mt-4 text-sm sm:text-base text-white/70 leading-relaxed">
                         {{ $heroDescription }}

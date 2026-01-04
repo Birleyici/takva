@@ -45,7 +45,7 @@
                         </div>
                         <div class="p-6 flex-1">
                             <p class="text-xs uppercase tracking-wide text-neutral-500 mb-2">
-                                {{ $item->category?->name ?? 'Genel' }} · {{ optional($item->published_at)->translatedFormat('d F Y') }}
+                                @trupper(($item->category?->name ?? 'Genel') . ' · ' . optional($item->published_at)->translatedFormat('d F Y'))
                             </p>
                             <h3 class="text-xl font-semibold text-secondary-900 group-hover:text-primary-600 transition-colors">{{ $item->title }}</h3>
                             <p class="text-secondary-600 mt-3 text-sm leading-relaxed">{{ Str::limit(strip_tags($item->excerpt ?: $item->content), 150) }}</p>
@@ -78,7 +78,7 @@
                     <a href="{{ route('articles.category', ['category' => $item->slug]) }}" class="bg-white border border-neutral-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-2">
                         <h3 class="text-lg font-semibold text-secondary-900">{{ $item->name }}</h3>
                         <p class="text-secondary-600 text-sm flex-1">{{ Str::limit(strip_tags($item->description), 150) ?: 'Kategori açıklaması yakında.' }}</p>
-                        <span class="text-xs uppercase tracking-wide text-neutral-500">{{ $item->articles_count ?? 0 }} makale</span>
+                        <span class="text-xs uppercase tracking-wide text-neutral-500">@trupper(($item->articles_count ?? 0) . ' makale')</span>
                     </a>
                 @endif
             @endforeach

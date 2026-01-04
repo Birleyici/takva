@@ -1,19 +1,43 @@
 @php
     $hasCustomFooterLogo = filled(optional($siteSettings)->logo_url ?? null);
     $footerLogo = $hasCustomFooterLogo ? $siteSettings->logo_url : asset('logo.png');
+    $themeSettings = optional($siteSettings)->theme_settings ?? [];
+    $footerPattern = $themeSettings['footer'] ?? [];
+    $footerPatternPath = $footerPattern['pattern_path'] ?? null;
+    $footerPatternOpacityValue = $footerPattern['opacity'] ?? null;
+    $footerPatternOpacity = is_numeric($footerPatternOpacityValue)
+        ? max(0, min(100, (float) $footerPatternOpacityValue)) / 100
+        : 0.2;
+    $footerPatternPlacement = $footerPattern['placement'] ?? 'repeat';
+    $footerPatternUrl = $footerPatternPath
+        ? Storage::disk('public')->url($footerPatternPath)
+        : null;
+    $footerPatternRepeat = $footerPatternPlacement === 'repeat' ? 'repeat' : 'no-repeat';
+    $footerPatternSize = match ($footerPatternPlacement) {
+        'cover' => 'cover',
+        'contain' => 'contain',
+        default => 'auto',
+    };
+    $showFooterPattern = $footerPatternUrl && $footerPatternOpacity > 0;
+    $footerPatternStyle = $showFooterPattern
+        ? "background-image: url('{$footerPatternUrl}'); background-repeat: {$footerPatternRepeat}; background-size: {$footerPatternSize}; background-position: center; opacity: {$footerPatternOpacity};"
+        : '';
 @endphp
 
 <!-- Footer - İslami Desenli -->
 <footer class="bg-secondary-800 text-white relative overflow-hidden">
-   
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    @if ($showFooterPattern)
+        <div class="absolute inset-0 pointer-events-none z-0" style="{{ $footerPatternStyle }}"></div>
+    @endif
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div class="col-span-1 md:col-span-2">
                 <div class="flex items-center space-x-3 mb-6">
                     <img src="{{ $footerLogo }}" alt="Takva Dergisi Logo" class="h-12 w-auto object-contain {{ $hasCustomFooterLogo ? '' : 'filter brightness-0 invert' }}" />
                 </div>
                 <p class="text-neutral-300 mb-6 leading-relaxed max-w-md">
-                    Şüphesiz azığın en hayırlısı takvâdır. (Bakara 197)
+                    Azık edinin! Şüphesiz azığın en hayırlısı takvâdır. (Bakara 197)
                 </p>
                 <div class="flex space-x-3">
                     @php
@@ -40,18 +64,19 @@
             </div>
 
             <div>
-                <h4 class="text-lg font-heading font-semibold mb-6">Hızlı Linkler</h4>
+                <h4 class="text-lg font-heading font-semibold mb-6">Hızlı Lİnkler</h4>
                 <ul class="space-y-3 text-neutral-300 text-sm">
                     <li><a href="/" class="hover:text-primary-400 transition-colors">Ana Sayfa</a></li>
                     <li><a href="{{ route('issues.index') }}" class="hover:text-primary-400 transition-colors">Sayılar</a></li>
                     <li><a href="{{ route('articles.index') }}" class="hover:text-primary-400 transition-colors">Makaleler</a></li>
+                    <li><a href="{{ route('videos.index') }}" class="hover:text-primary-400 transition-colors">Videolar</a></li>
                     <li><a href="{{ route('authors.index') }}" class="hover:text-primary-400 transition-colors">Yazarlar</a></li>
                     <li><a href="{{ route('contact.show') }}" class="hover:text-primary-400 transition-colors">İletişim</a></li>
                 </ul>
             </div>
 
             <div>
-                <h4 class="text-lg font-heading font-semibold mb-6">İletişim</h4>
+                <h4 class="text-lg font-heading font-semibold mb-6">İletİşİm</h4>
                 <ul class="space-y-3 text-neutral-300 text-sm">
                     <li class="flex items-center">
                         <svg class="w-4 h-4 mr-3 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

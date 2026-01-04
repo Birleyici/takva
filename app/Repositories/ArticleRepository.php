@@ -12,14 +12,19 @@ class ArticleRepository implements ArticleRepositoryInterface
     {
         $query = Article::query()
             ->with(['category', 'author', 'featureImage'])
-            ->orderByDesc('published_at')
-            ->orderByDesc('created_at');
+            ->leftJoin('issues', 'articles.issue_id', '=', 'issues.id')
+            ->select('articles.*')
+            ->orderByDesc('issues.number')
+            ->orderByDesc('issues.year')
+            ->orderByDesc('issues.month')
+            ->orderByDesc('articles.published_at')
+            ->orderByDesc('articles.created_at');
 
         if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($builder) use ($search) {
-                $builder->where('title', 'like', "%{$search}%")
-                    ->orWhere('excerpt', 'like', "%{$search}%");
+                $builder->where('articles.title', 'like', "%{$search}%")
+                    ->orWhere('articles.excerpt', 'like', "%{$search}%");
             });
         }
 

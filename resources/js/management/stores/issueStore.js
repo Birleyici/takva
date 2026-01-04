@@ -68,12 +68,13 @@ export const useIssueStore = defineStore('issueStore', {
             }
         },
 
-        async createIssue(payload, params = {}) {
+        async createIssue(payload, params = {}, options = {}) {
             this.error = null;
 
             try {
                 const response = await axios.post('/management/api/issues', payload, {
                     headers: { 'Content-Type': 'multipart/form-data' },
+                    onUploadProgress: options.onUploadProgress,
                 });
 
                 await this.fetchIssues({
@@ -90,12 +91,13 @@ export const useIssueStore = defineStore('issueStore', {
             }
         },
 
-        async updateIssue(id, payload, params = {}) {
+        async updateIssue(id, payload, params = {}, options = {}) {
             this.error = null;
 
             try {
                 const response = await axios.post(`/management/api/issues/${id}?_method=PUT`, payload, {
                     headers: { 'Content-Type': 'multipart/form-data' },
+                    onUploadProgress: options.onUploadProgress,
                 });
 
                 await this.fetchIssues({

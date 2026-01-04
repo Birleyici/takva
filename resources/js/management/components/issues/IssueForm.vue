@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { QuillEditor } from '@vueup/vue-quill';
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
 import { useIssueStore } from '../../stores/issueStore';
@@ -39,6 +39,10 @@ const selectedCover = ref(null);
 const showMediaModal = ref(false);
 const errors = ref({});
 const submitting = ref(false);
+const uploadProgress = ref(null);
+const uploadLoaded = ref(0);
+const uploadTotal = ref(0);
+const uploadError = ref('');
 
 const months = [
     { value: 1, label: 'Ocak' },
@@ -78,6 +82,7 @@ watch(
                 : null;
             pdfFile.value = null;
             selectedCover.value = issue.cover_image ?? null;
+            uploadProgress.value = null;
         } else {
             resetForm();
         }
@@ -97,6 +102,7 @@ function resetForm() {
     existingPdf.value = null;
     pdfFile.value = null;
     selectedCover.value = null;
+    resetUploadState();
 }
 
 function handlePdfChange(event) {
@@ -108,16 +114,19 @@ function handlePdfChange(event) {
 
     pdfFile.value = file;
     form.remove_pdf = false;
+    resetUploadState();
 }
 
 function clearPdfSelection() {
     pdfFile.value = null;
+    resetUploadState();
 }
 
 function removeExistingPdf() {
     form.remove_pdf = true;
     existingPdf.value = null;
     pdfFile.value = null;
+    resetUploadState();
 }
 
 function openMediaModal() {
@@ -140,7 +149,7 @@ function clearCoverSelection() {
 }
 
 function formatSize(bytes) {
-    if (!bytes) {
+    if (bytes === null || bytes === undefined) {
         return '';
     }
 
@@ -153,6 +162,60 @@ function formatSize(bytes) {
     }
 
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function resetUploadState() {
+    uploadProgress.value = null;
+    uploadLoaded.value = 0;
+    uploadTotal.value = 0;
+    uploadError.value = '';
+}
+
+function updateUploadProgress(progressEvent) {
+    if (!progressEvent) {
+        return;
+    }
+
+    const loaded = typeof progressEvent.loaded === 'number' ? progressEvent.loaded : 0;
+    let total = 0;
+
+    if (typeof progressEvent.total === 'number' && progressEvent.total > 0) {
+        total = progressEvent.total;
+    } else if (pdfFile.value?.size) {
+        total = pdfFile.value.size;
+    }
+
+    uploadLoaded.value = loaded;
+    uploadTotal.value = total;
+
+    if (total > 0) {
+        uploadProgress.value = Math.min(100, Math.round((loaded / total) * 100));
+        return;
+    }
+
+    if (typeof progressEvent.progress === 'number' && progressEvent.progress >= 0) {
+        uploadProgress.value = Math.min(100, Math.round(progressEvent.progress * 100));
+    }
+}
+
+function resolveUploadError(error) {
+    if (!error) {
+        return '';
+    }
+
+    if (!error.response) {
+        return 'Bağlantı hatası oluştu. İnternet bağlantınızı kontrol edip tekrar deneyin.';
+    }
+
+    if (error.response.status === 413) {
+        return 'PDF dosyası çok büyük. Lütfen 50MB altındaki bir dosya yükleyin.';
+    }
+
+    if (error.response.status >= 500) {
+        return 'Sunucuda beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.';
+    }
+
+    return issueStore.error || 'PDF yükleme sırasında bir hata oluştu.';
 }
 
 function buildFormData() {
@@ -182,15 +245,31 @@ function buildFormData() {
 async function handleSubmit() {
     errors.value = {};
     submitting.value = true;
+    const hasPdfUpload = !!pdfFile.value;
+    uploadProgress.value = hasPdfUpload ? 0 : null;
+    uploadLoaded.value = 0;
+    uploadTotal.value = pdfFile.value?.size ?? 0;
+    uploadError.value = '';
 
     try {
         const payload = buildFormData();
+        const requestOptions = hasPdfUpload
+            ? {
+                onUploadProgress: (progressEvent) => {
+                    updateUploadProgress(progressEvent);
+                },
+            }
+            : {};
 
         if (isEditMode.value && props.issue?.id) {
-            await issueStore.updateIssue(props.issue.id, payload, effectiveFetchParams.value);
+            await issueStore.updateIssue(props.issue.id, payload, effectiveFetchParams.value, requestOptions);
         } else {
-            await issueStore.createIssue(payload, effectiveFetchParams.value);
+            await issueStore.createIssue(payload, effectiveFetchParams.value, requestOptions);
             resetForm();
+        }
+
+        if (hasPdfUpload) {
+            uploadProgress.value = 100;
         }
 
         emit('saved');
@@ -202,8 +281,22 @@ async function handleSubmit() {
                 general: [issueStore.error || 'Beklenmeyen bir hata oluştu.'],
             };
         }
+        if (hasPdfUpload) {
+            if (error.response?.status === 422) {
+                uploadError.value = errors.value.pdf?.[0] ?? '';
+            } else {
+                uploadError.value = resolveUploadError(error);
+            }
+        }
     } finally {
         submitting.value = false;
+        if (hasPdfUpload) {
+            setTimeout(() => {
+                uploadProgress.value = null;
+                uploadLoaded.value = 0;
+                uploadTotal.value = 0;
+            }, 400);
+        }
     }
 }
 </script>
@@ -388,15 +481,38 @@ async function handleSubmit() {
                             <p class="text-xs text-neutral-500">{{ formatSize(existingPdf.size) }}</p>
                         </div>
 
+                        <div v-if="uploadProgress !== null" class="rounded-xl border border-primary-100 bg-white px-4 py-3 text-sm shadow-sm">
+                            <div class="flex items-center justify-between text-xs font-semibold text-secondary-900">
+                                <span>PDF yükleniyor</span>
+                                <span v-if="uploadTotal > 0">
+                                    {{ formatSize(uploadLoaded) }} / {{ formatSize(uploadTotal) }} · %{{ uploadProgress }}
+                                </span>
+                                <span v-else>%{{ uploadProgress }}</span>
+                            </div>
+                            <div class="mt-2 h-2 overflow-hidden rounded-full bg-neutral-100">
+                                <div
+                                    class="h-full rounded-full bg-primary-500 transition-all duration-200"
+                                    :style="{ width: `${uploadProgress}%` }"
+                                ></div>
+                            </div>
+                        </div>
+
+                        <div
+                            v-if="uploadError"
+                            class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+                        >
+                            {{ uploadError }}
+                        </div>
+
                         <p class="text-xs text-neutral-400">
                             PDF dosya boyutu en fazla 50MB olabilir.
                         </p>
                     </div>
-                </div>
-                <p v-if="errors.pdf" class="mt-2 text-sm text-red-600">
-                    {{ errors.pdf[0] }}
-                </p>
             </div>
+            <p v-if="errors.pdf && !uploadError" class="mt-2 text-sm text-red-600">
+                {{ errors.pdf[0] }}
+            </p>
+        </div>
 
             <p v-if="errors.general" class="text-sm text-red-600">
                 {{ errors.general[0] }}

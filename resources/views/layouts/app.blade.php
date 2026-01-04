@@ -22,7 +22,7 @@
     @stack('styles')
 </head>
 <body class="min-h-screen bg-white">
-    <x-layout.navigation />
+    <x-layout.navigation :mode="$navMode ?? 'solid'" />
     
     @yield('content')
     

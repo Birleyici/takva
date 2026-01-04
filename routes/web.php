@@ -5,24 +5,84 @@ use App\Http\Controllers\Management\ArticlePageController;
 use App\Http\Controllers\Management\AuthorController;
 use App\Http\Controllers\Management\CategoryController;
 use App\Http\Controllers\Management\DashboardController;
+use App\Http\Controllers\Management\HeroSlideController as ManagementHeroSlideController;
 use App\Http\Controllers\Management\ContactMessageController as ManagementContactMessageController;
 use App\Http\Controllers\Management\IssueController as ManagementIssueApiController;
 use App\Http\Controllers\Management\IssuePageController;
 use App\Http\Controllers\Management\MenuPageController as ManagementMenuPageController;
 use App\Http\Controllers\Management\SiteSettingController as ManagementSiteSettingController;
+use App\Http\Controllers\Management\VideoController as ManagementVideoController;
+use App\Http\Controllers\Management\VideoCategoryController as ManagementVideoCategoryController;
+use App\Http\Controllers\Management\VideoPageController;
 use App\Http\Controllers\Management\MediaController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Web\ArticleController as WebArticleController;
 use App\Http\Controllers\Web\AuthorController as WebAuthorController;
 use App\Http\Controllers\Web\HomeController;
 use App\Http\Controllers\Web\IssueController as WebIssueController;
+use App\Http\Controllers\Web\VideoController as WebVideoController;
 use App\Http\Controllers\Web\ContactController;
 use App\Http\Controllers\Web\ContactMessageController as WebContactMessageController;
 use App\Http\Controllers\Web\SearchController;
 use App\Http\Controllers\Web\MenuPageController as WebMenuPageController;
 use Illuminate\Foundation\Application;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+Route::get('/storage-check', function () {
+    $paths = [
+        'public_path(storage)' => public_path('storage'),
+        'public_html/storage' => realpath(base_path('../public_html/storage')) ?: base_path('../public_html/storage'),
+    ];
+
+    $expectedTarget = storage_path('app/public');
+    $lines = ["--- storage symlink diagnostic ---"];
+    $lines[] = 'php_version: '.PHP_VERSION;
+    $lines[] = 'cwd: '.getcwd();
+    $lines[] = 'expected_target: '.$expectedTarget;
+
+    foreach ($paths as $label => $linkPath) {
+        $testFile = $linkPath.'/ping.txt';
+        $data = [
+            'link_path' => $linkPath,
+            'link_exists' => file_exists($linkPath),
+            'link_is_link' => is_link($linkPath),
+            'link_readlink' => is_link($linkPath) && function_exists('readlink') ? readlink($linkPath) : null,
+            'link_realpath' => realpath($linkPath) ?: false,
+            'test_file' => $testFile,
+            'file_exists' => file_exists($testFile),
+            'file_is_readable' => is_readable($testFile),
+            'file_realpath' => realpath($testFile) ?: false,
+            'file_stat' => @stat($testFile) ?: false,
+        ];
+
+        $mediaDir = rtrim($data['link_realpath'] ?: '', '/').'/media';
+        if (is_dir($mediaDir)) {
+            $sample = array_slice(glob($mediaDir.'/*'), 0, 5);
+            $data['media_dir'] = $mediaDir;
+            $data['media_sample'] = $sample;
+        } else {
+            $data['media_dir'] = $mediaDir.' (not found)';
+            $data['media_sample'] = [];
+        }
+
+        $lines[] = "--- {$label} ---";
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $value = json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+            } elseif ($value === false) {
+                $value = 'false';
+            }
+            $lines[] = "{$key}: {$value}";
+        }
+    }
+    $lines[] = '--- end ---';
+
+    return new Response(implode("\n", $lines), 200, [
+        'Content-Type' => 'text/plain; charset=UTF-8',
+    ]);
+});
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -38,8 +98,11 @@ Route::get('/yazilar/{article:slug}', [WebArticleController::class, 'show'])->na
 
 Route::get('/yazarlar', [WebAuthorController::class, 'index'])->name('authors.index');
 
+Route::get('/son-sayi', [WebIssueController::class, 'latest'])->name('issues.latest');
 Route::get('/sayilar', [WebIssueController::class, 'index'])->name('issues.index');
 Route::get('/sayilar/{issue:slug}', [WebIssueController::class, 'show'])->name('issues.show');
+Route::get('/videolar', [WebVideoController::class, 'index'])->name('videos.index');
+Route::get('/videolar/{video:slug}', [WebVideoController::class, 'show'])->name('videos.show');
 
 Route::get('/tr/menu/{menuPage:slug}', [WebMenuPageController::class, 'show'])->name('menu.show');
 Route::get('/tr/iletisim', ContactController::class)->name('contact.show');
@@ -66,6 +129,8 @@ Route::middleware(['auth'])
         Route::get('/articles/{article}/edit', [ArticlePageController::class, 'edit'])->name('articles.edit');
         Route::get('/issues/create', [IssuePageController::class, 'create'])->name('issues.create');
         Route::get('/issues/{issue}/edit', [IssuePageController::class, 'edit'])->name('issues.edit');
+        Route::get('/videos/create', [VideoPageController::class, 'create'])->name('videos.create');
+        Route::get('/videos/{video}/edit', [VideoPageController::class, 'edit'])->name('videos.edit');
 
         Route::prefix('api')
             ->name('api.')
@@ -74,6 +139,9 @@ Route::middleware(['auth'])
                 Route::apiResource('authors', AuthorController::class)->except(['create', 'edit']);
                 Route::apiResource('articles', ArticleController::class)->except(['create', 'edit']);
                 Route::apiResource('issues', ManagementIssueApiController::class)->except(['create', 'edit']);
+                Route::apiResource('hero-slides', ManagementHeroSlideController::class)->except(['create', 'edit']);
+                Route::apiResource('videos', ManagementVideoController::class)->except(['create', 'edit']);
+                Route::apiResource('video-categories', ManagementVideoCategoryController::class)->except(['create', 'edit']);
                 Route::apiResource('menu-pages', ManagementMenuPageController::class)->except(['create', 'edit']);
                 Route::get('media', [MediaController::class, 'index'])->name('media.index');
                 Route::post('media', [MediaController::class, 'store'])->name('media.store');

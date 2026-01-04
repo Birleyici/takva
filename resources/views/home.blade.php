@@ -12,11 +12,18 @@
 @section('twitter_description', 'İslami bilim, kültür ve düşünce dünyasından en güncel makaleler ve sayılar')
 
 @section('content')
-    <x-sections.hero :latest-issue="$latestIssue" />
+    <x-sections.hero
+        :latest-issue="$latestIssue"
+        :site-settings="$siteSettings"
+        :hero-slides="$heroSlides"
+    />
 
-    <x-sections.latest-issues :issues="$latestIssues" />
+    <x-sections.latest-issues :issues="$latestIssues" :site-settings="$siteSettings" />
 
     <x-sections.latest-articles
         :latest-articles="$latestArticles"
-        :popular-articles="$popularArticles" />
+        :popular-articles="$popularArticles"
+        :site-settings="$siteSettings" />
+
+    <x-sections.latest-videos :videos="$latestVideos" :site-settings="$siteSettings" />
 @endsection

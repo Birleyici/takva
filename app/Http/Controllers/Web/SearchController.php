@@ -102,14 +102,19 @@ class SearchController extends Controller
 
         $articles = Article::query()
             ->with(['author', 'featureImage', 'category'])
-            ->where('is_published', true)
+            ->leftJoin('issues', 'articles.issue_id', '=', 'issues.id')
+            ->where('articles.is_published', true)
             ->where(function ($builder) use ($query) {
-                $builder->where('title', 'like', "%{$query}%")
-                    ->orWhere('excerpt', 'like', "%{$query}%")
-                    ->orWhere('content', 'like', "%{$query}%");
+                $builder->where('articles.title', 'like', "%{$query}%")
+                    ->orWhere('articles.excerpt', 'like', "%{$query}%")
+                    ->orWhere('articles.content', 'like', "%{$query}%");
             })
-            ->latest('published_at')
-            ->latest('created_at')
+            ->orderByDesc('issues.number')
+            ->orderByDesc('issues.year')
+            ->orderByDesc('issues.month')
+            ->orderByDesc('articles.published_at')
+            ->orderByDesc('articles.created_at')
+            ->select('articles.*')
             ->take(6)
             ->get();
 

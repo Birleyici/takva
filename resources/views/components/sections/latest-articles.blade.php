@@ -1,20 +1,74 @@
 @props([
     'latestArticles' => null,
     'popularArticles' => null,
+    'siteSettings' => null,
 ])
 
 @php
     $latestArticles = collect($latestArticles);
     $popularArticles = collect($popularArticles);
     $articlePlaceholder = '/placeholder.jpg';
+    $cleanArticleSnippet = function (?string $value): string {
+        $value = trim(strip_tags((string) $value));
+        if ($value === '') {
+            return '';
+        }
+
+        $value = preg_replace(
+            '/^\s*(?:\d{1,3}\s*\.?\s*(?:sayi|sayı)|(?:sayi|sayı)\s*\d{1,3})\s*[-–—:]?\s*/iu',
+            '',
+            $value
+        );
+
+        return trim($value);
+    };
+    $headlineArticle = $latestArticles->first();
+    $headlineSnippet = null;
+    if ($headlineArticle) {
+        $headlineSource = $cleanArticleSnippet($headlineArticle->content ?: $headlineArticle->excerpt);
+        if ($headlineSource !== '') {
+            $headlineSnippet = \Illuminate\Support\Str::limit($headlineSource, 150, '...');
+            if (!\Illuminate\Support\Str::endsWith($headlineSnippet, '...')) {
+                $headlineSnippet .= '...';
+            }
+        }
+    }
+    $themeSettings = optional($siteSettings)->theme_settings ?? [];
+    $articlesPattern = $themeSettings['home_articles'] ?? [];
+    $articlesPatternPath = $articlesPattern['pattern_path'] ?? null;
+    $articlesPatternOpacityValue = $articlesPattern['opacity'] ?? null;
+    $articlesPatternOpacity = is_numeric($articlesPatternOpacityValue)
+        ? max(0, min(100, (float) $articlesPatternOpacityValue)) / 100
+        : 0.2;
+    $articlesPatternPlacement = $articlesPattern['placement'] ?? 'repeat';
+    $articlesPatternUrl = $articlesPatternPath
+        ? \Illuminate\Support\Facades\Storage::disk('public')->url($articlesPatternPath)
+        : null;
+    $articlesPatternRepeat = $articlesPatternPlacement === 'repeat' ? 'repeat' : 'no-repeat';
+    $articlesPatternSize = match ($articlesPatternPlacement) {
+        'cover' => 'cover',
+        'contain' => 'contain',
+        default => 'auto',
+    };
+    $articlesPatternPosition = $articlesPatternPlacement === 'repeat' ? 'top left' : 'top center';
+    $showArticlesPattern = $articlesPatternUrl && $articlesPatternOpacity > 0;
+    $articlesPatternStyle = $showArticlesPattern
+        ? "background-image: url('{$articlesPatternUrl}'); background-repeat: {$articlesPatternRepeat}; background-size: {$articlesPatternSize}; background-position: {$articlesPatternPosition}; opacity: {$articlesPatternOpacity};"
+        : '';
 @endphp
 
 <!-- Latest Articles Section -->
-<section class="py-20 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<section class="relative overflow-hidden py-20 bg-gradient-to-br from-slate-50 via-gray-50 to-neutral-100">
+    @if ($showArticlesPattern)
+        <div class="absolute left-0 right-0 top-0 h-[400px] max-h-full pointer-events-none" style="{{ $articlesPatternStyle }}"></div>
+    @endif
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
             <h2 class="text-4xl md:text-5xl font-decorative font-bold text-secondary-900 mb-6">
-                <span class="text-primary-500">Makaleler</span>
+                <span class="inline-flex flex-wrap items-baseline justify-center gap-x-4 gap-y-2">
+                    <span class="text-primary-500">@trupper('Makaleler')</span>
+
+                </span>
             </h2>
             <p class="text-xl text-secondary-600 max-w-3xl mx-auto leading-relaxed mb-12">
                 En güncel makalelerimizle İslami bilim ve kültür dünyasından haberdar olun
@@ -46,7 +100,7 @@
                 @forelse ($latestArticles as $article)
                     <x-partials.article-card
                         :title="$article->title"
-                        :description="\Illuminate\Support\Str::limit(strip_tags($article->excerpt ?: $article->content), 220)"
+                        :description="\Illuminate\Support\Str::limit($cleanArticleSnippet($article->content ?: $article->excerpt), 150, '...')"
                         :image="$article->featureImage?->url ?? $articlePlaceholder"
                         :url="route('articles.show', $article)"
                         :reverse="$loop->even"
@@ -61,7 +115,7 @@
                 @forelse ($popularArticles as $article)
                     <x-partials.article-card
                         :title="$article->title"
-                        :description="\Illuminate\Support\Str::limit(strip_tags($article->excerpt ?: $article->content), 220)"
+                        :description="\Illuminate\Support\Str::limit($cleanArticleSnippet($article->content ?: $article->excerpt), 150, '...')"
                         :image="$article->featureImage?->url ?? $articlePlaceholder"
                         :url="route('articles.show', $article)"
                         :reverse="$loop->even"

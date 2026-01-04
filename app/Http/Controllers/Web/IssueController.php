@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Issue;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -29,7 +30,8 @@ class IssueController extends Controller
         $query = Issue::query()
             ->with('coverImage')
             ->orderByDesc('year')
-            ->orderByDesc('month');
+            ->orderByDesc('month')
+            ->orderByDesc('created_at');
 
         $selectedYear = $request->query('year');
         $selectedMonth = $request->query('month');
@@ -52,6 +54,25 @@ class IssueController extends Controller
             'selectedYear' => $selectedYear,
             'selectedMonth' => $selectedMonth,
         ]);
+    }
+
+    public function latest(): RedirectResponse
+    {
+        $latestIssue = Issue::query()
+            ->orderByDesc('year')
+            ->orderByDesc('month')
+            ->orderByDesc('created_at')
+            ->first();
+
+        if (!$latestIssue) {
+            return redirect()->route('issues.index');
+        }
+
+        if ($latestIssue->pdf_url) {
+            return redirect()->to($latestIssue->pdf_url);
+        }
+
+        return redirect()->route('issues.show', $latestIssue);
     }
 
     public function show(Issue $issue): View

@@ -14,10 +14,15 @@ class ArticleController extends Controller
     public function index(Request $request, ?Category $category = null, ?Author $author = null): View
     {
         $articlesQuery = Article::query()
-            ->with(['author.profileImage', 'category', 'featureImage'])
-            ->where('is_published', true)
-            ->latest('published_at')
-            ->latest('created_at');
+            ->with(['author.profileImage', 'category', 'featureImage', 'issue'])
+            ->leftJoin('issues', 'articles.issue_id', '=', 'issues.id')
+            ->where('articles.is_published', true)
+            ->orderByDesc('issues.number')
+            ->orderByDesc('issues.year')
+            ->orderByDesc('issues.month')
+            ->orderByDesc('articles.published_at')
+            ->orderByDesc('articles.created_at')
+            ->select('articles.*');
 
         $selectedCategory = $category;
         if (!$selectedCategory && $categorySlug = $request->query('category')) {
@@ -51,10 +56,15 @@ class ArticleController extends Controller
 
         $popularArticles = Article::query()
             ->with(['featureImage'])
-            ->where('is_published', true)
+            ->leftJoin('issues', 'articles.issue_id', '=', 'issues.id')
+            ->where('articles.is_published', true)
             ->orderByDesc('view_count')
-            ->orderByDesc('published_at')
-            ->orderByDesc('created_at')
+            ->orderByDesc('issues.number')
+            ->orderByDesc('issues.year')
+            ->orderByDesc('issues.month')
+            ->orderByDesc('articles.published_at')
+            ->orderByDesc('articles.created_at')
+            ->select('articles.*')
             ->take(4)
             ->get();
 
@@ -111,13 +121,18 @@ class ArticleController extends Controller
 
         $relatedArticles = Article::query()
             ->with('featureImage')
-            ->where('is_published', true)
-            ->where('id', '!=', $article->id)
+            ->leftJoin('issues', 'articles.issue_id', '=', 'issues.id')
+            ->where('articles.is_published', true)
+            ->where('articles.id', '!=', $article->id)
             ->when($article->category_id, function ($query) use ($article) {
                 $query->where('category_id', $article->category_id);
             })
-            ->orderByDesc('published_at')
-            ->orderByDesc('created_at')
+            ->orderByDesc('issues.number')
+            ->orderByDesc('issues.year')
+            ->orderByDesc('issues.month')
+            ->orderByDesc('articles.published_at')
+            ->orderByDesc('articles.created_at')
+            ->select('articles.*')
             ->take(3)
             ->get();
 

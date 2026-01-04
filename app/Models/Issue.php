@@ -15,6 +15,7 @@ class Issue extends Model
     protected $fillable = [
         'title',
         'slug',
+        'number',
         'year',
         'month',
         'description',
@@ -25,6 +26,7 @@ class Issue extends Model
     ];
 
     protected $casts = [
+        'number' => 'integer',
         'year' => 'integer',
         'month' => 'integer',
         'pdf_size' => 'integer',

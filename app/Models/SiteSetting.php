@@ -17,6 +17,8 @@ class SiteSetting extends Model
         'contact_map_embed',
         'contact_hero_text',
         'logo_path',
+        'hero_background_path',
+        'theme_settings',
         'social_twitter',
         'social_instagram',
         'social_youtube',
@@ -24,8 +26,13 @@ class SiteSetting extends Model
         'social_whatsapp',
     ];
 
+    protected $casts = [
+        'theme_settings' => 'array',
+    ];
+
     protected $appends = [
         'logo_url',
+        'hero_background_url',
     ];
 
     public function getLogoUrlAttribute(): ?string
@@ -35,5 +42,14 @@ class SiteSetting extends Model
         }
 
         return Storage::disk('public')->url($this->logo_path);
+    }
+
+    public function getHeroBackgroundUrlAttribute(): ?string
+    {
+        if (!$this->hero_background_path) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($this->hero_background_path);
     }
 }

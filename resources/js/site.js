@@ -1,6 +1,46 @@
 import './bootstrap';
 import { createApp } from 'vue';
+import HeroSlider from './Components/HeroSlider.vue';
 import SearchModal from './Components/SearchModal.vue';
+
+const mountHeroSliders = () => {
+    const nodes = document.querySelectorAll('[data-hero-slider]');
+
+    nodes.forEach((node) => {
+        if (node.__vue_app__) {
+            return;
+        }
+
+        const slidesRaw = node.getAttribute('data-hero-slides') || '[]';
+        let slides = [];
+
+        try {
+            slides = JSON.parse(slidesRaw);
+        } catch (error) {
+            slides = [];
+        }
+
+        if (!Array.isArray(slides) || slides.length === 0) {
+            return;
+        }
+
+        const autoplayAttr = node.getAttribute('data-hero-slider-autoplay');
+        const autoplay = autoplayAttr !== 'false';
+        const intervalAttr = Number.parseInt(
+            node.getAttribute('data-hero-slider-interval') || '6500',
+            10,
+        );
+        const interval = Number.isNaN(intervalAttr) ? 6500 : intervalAttr;
+
+        const app = createApp(HeroSlider, {
+            slides,
+            autoplay,
+            interval,
+        });
+        node.__vue_app__ = app;
+        app.mount(node);
+    });
+};
 
 const mountSearchComponents = () => {
     const nodes = document.querySelectorAll('[data-search-component]');
@@ -55,6 +95,7 @@ const initMobileMenu = () => {
 };
 
 const initializeSite = () => {
+    mountHeroSliders();
     mountSearchComponents();
     initMobileMenu();
 };
