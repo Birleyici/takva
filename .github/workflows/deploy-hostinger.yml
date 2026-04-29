@@ -1,0 +1,104 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+      SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+      SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
+      APP_PATH: ${{ secrets.HOSTINGER_APP_PATH }}
+      PUBLIC_PATH: ${{ secrets.HOSTINGER_PUBLIC_PATH }}
+      RUN_MIGRATIONS: ${{ vars.RUN_MIGRATIONS }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Build frontend assets
+        run: |
+          npm ci
+          npm run build
+          rm -f public/hot
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.HOSTINGER_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" "$SSH_HOST" >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Ensure remote directories exist
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "mkdir -p '$APP_PATH' '$PUBLIC_PATH'"
+
+      - name: Sync Laravel app to server
+        run: |
+          rsync -az --delete \
+            --exclude ".git/" \
+            --exclude ".github/" \
+            --exclude "node_modules/" \
+            --exclude "vendor/" \
+            --exclude "storage/" \
+            --exclude ".env" \
+            -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
+            ./ "$SSH_USER@$SSH_HOST:$APP_PATH/"
+
+      - name: Sync public files to public_html
+        run: |
+          rsync -az --delete \
+            --exclude "index.php" \
+            --exclude "storage/" \
+            -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
+            ./public/ "$SSH_USER@$SSH_HOST:$PUBLIC_PATH/"
+
+      - name: Upload Hostinger index.php
+        run: |
+          rsync -az \
+            -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
+            ./deploy/hostinger/index.php "$SSH_USER@$SSH_HOST:$PUBLIC_PATH/index.php"
+
+      - name: Install PHP dependencies and optimize
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "APP_PATH='$APP_PATH' RUN_MIGRATIONS='${RUN_MIGRATIONS:-false}' bash -se" <<'EOF'
+          set -e
+
+          cd "$APP_PATH"
+
+          if [ ! -f .env ]; then
+            echo "ERROR: .env not found at $APP_PATH"
+            exit 1
+          fi
+
+          mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+
+          composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+
+          if [ "$RUN_MIGRATIONS" = "true" ]; then
+            php artisan migrate --force
+          fi
+
+          php artisan optimize:clear
+          php artisan optimize
+          chmod -R ug+rw storage bootstrap/cache
+          EOF

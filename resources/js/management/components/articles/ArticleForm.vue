@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useArticleStore } from '../../stores/articleStore';
 import { useCategoryStore } from '../../stores/categoryStore';
 import { useAuthorStore } from '../../stores/authorStore';
+import { useIssueStore } from '../../stores/issueStore';
 import MediaModal from '../media/MediaModal.vue';
 import { QuillEditor } from '@vueup/vue-quill';
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
@@ -27,12 +28,14 @@ const emit = defineEmits(['saved', 'cancel']);
 const articleStore = useArticleStore();
 const categoryStore = useCategoryStore();
 const authorStore = useAuthorStore();
+const issueStore = useIssueStore();
 
 const form = reactive({
     title: '',
     excerpt: '',
     content: '',
     category_id: null,
+    issue_id: null,
     author_id: null,
     feature_image_id: null,
     is_published: true,
@@ -49,13 +52,17 @@ const effectiveFetchParams = computed(() => props.fetchParams ?? {});
 
 const categories = computed(() => categoryStore.categories ?? []);
 const authors = computed(() => authorStore.authors ?? []);
+const issues = computed(() => issueStore.issues ?? []);
 
 onMounted(async () => {
-    if (!categoryStore.categories?.length && categoryStore.fetchCategories) {
-        await categoryStore.fetchCategories();
+    if (categoryStore.fetchCategories) {
+        await categoryStore.fetchCategories({ per_page: 200 });
     }
-    if (!authorStore.authors?.length) {
-        await authorStore.fetchAuthors();
+    if (authorStore.fetchAuthors) {
+        await authorStore.fetchAuthors({ per_page: 200 });
+    }
+    if (issueStore.fetchIssues) {
+        await issueStore.fetchIssues({ per_page: 200 });
     }
 });
 
@@ -67,6 +74,7 @@ watch(
             form.excerpt = article.excerpt ?? '';
             form.content = article.content ?? '';
             form.category_id = article.category?.id ?? null;
+            form.issue_id = article.issue_id ?? null;
             form.author_id = article.author?.id ?? null;
             form.feature_image_id = article.feature_image?.id ?? null;
             form.is_published = article.is_published ?? true;
@@ -85,6 +93,7 @@ function resetForm() {
     form.excerpt = '';
     form.content = '';
     form.category_id = null;
+    form.issue_id = null;
     form.author_id = null;
     form.feature_image_id = null;
     form.is_published = true;
@@ -207,6 +216,27 @@ async function handleSubmit() {
                         {{ errors.author_id[0] }}
                     </p>
                 </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-neutral-700">
+                    İlgili Sayı
+                </label>
+                <select
+                    v-model="form.issue_id"
+                    class="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-secondary-900 shadow-sm transition focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                >
+                    <option :value="null">Sayı seçin</option>
+                    <option v-for="issue in issues" :key="issue.id" :value="issue.id">
+                        {{ issue.number ? issue.number + '. Sayı' : issue.title }} · {{ issue.year }} {{ issue.month_name }}
+                    </option>
+                </select>
+                <p v-if="errors.issue_id" class="mt-2 text-sm text-red-600">
+                    {{ errors.issue_id[0] }}
+                </p>
+                <p v-else-if="!issues.length" class="mt-2 text-xs text-neutral-400">
+                    Henüz sayı eklenmemiş.
+                </p>
             </div>
 
             <div>

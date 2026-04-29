@@ -12,6 +12,7 @@ class IssueRepository implements IssueRepositoryInterface
     {
         $query = Issue::query()
             ->with('coverImage')
+            ->orderByDesc('number')
             ->orderByDesc('year')
             ->orderByDesc('month')
             ->orderByDesc('created_at');

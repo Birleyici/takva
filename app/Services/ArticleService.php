@@ -8,6 +8,7 @@ use App\Models\Author;
 use App\Repositories\Interfaces\ArticleRepositoryInterface;
 use App\Repositories\Interfaces\AuthorRepositoryInterface;
 use App\Repositories\Interfaces\CategoryRepositoryInterface;
+use App\Repositories\Interfaces\IssueRepositoryInterface;
 use App\Repositories\Interfaces\MediaAssetRepositoryInterface;
 use Illuminate\Container\Attributes\Log;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -22,6 +23,7 @@ class ArticleService
     public function __construct(
         private readonly ArticleRepositoryInterface $articleRepository,
         private readonly CategoryRepositoryInterface $categoryRepository,
+        private readonly IssueRepositoryInterface $issueRepository,
         private readonly AuthorRepositoryInterface $authorRepository,
         private readonly MediaAssetRepositoryInterface $mediaRepository,
         private readonly ArticleContentNormalizer $contentNormalizer,
@@ -105,6 +107,7 @@ class ArticleService
 
         $payload['content'] = $this->contentNormalizer->normalize($payload['content']);
         $payload['category_id'] = $this->resolveCategoryId($data['category_id'] ?? null);
+        $payload['issue_id'] = $this->resolveIssueId($data['issue_id'] ?? null);
         $payload['author_id'] = $this->resolveAuthorId($data['author_id'] ?? null);
 
         $slugInput = $data['slug'] ?? $data['title'];
@@ -180,6 +183,21 @@ class ArticleService
         $this->resolvedAuthor = $author;
 
         return $author->id;
+    }
+
+    private function resolveIssueId($issueId): ?int
+    {
+        if ($issueId === null || $issueId === '') {
+            return null;
+        }
+
+        $issue = $this->issueRepository->findById((int) $issueId);
+
+        if (!$issue) {
+            throw new InvalidArgumentException('Seçilen sayı bulunamadı.');
+        }
+
+        return $issue->id;
     }
 
     private function resolveMediaId($mediaId): ?int

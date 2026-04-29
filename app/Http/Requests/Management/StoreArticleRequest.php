@@ -27,6 +27,7 @@ class StoreArticleRequest extends FormRequest
             'excerpt' => ['nullable', 'string', 'max:255'],
             'content' => ['nullable', 'string'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'issue_id' => ['nullable', 'integer', 'exists:issues,id'],
             'author_id' => ['nullable', 'integer', 'exists:authors,id'],
             'feature_image_id' => ['nullable', 'integer', 'exists:media_assets,id'],
             'is_published' => ['nullable', 'boolean'],

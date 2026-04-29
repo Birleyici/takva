@@ -14,6 +14,7 @@ class ArticleDTO
     public ?string $content = null;
     public bool $is_published = true;
     public ?string $published_at = null;
+    public ?int $issue_id = null;
     public ?CategoryDTO $category = null;
     public ?AuthorDTO $author = null;
     public ?MediaAssetDTO $feature_image = null;
@@ -54,6 +55,7 @@ class ArticleDTO
         $dto->content = $data['content'] ?? null;
         $dto->is_published = (bool) ($data['is_published'] ?? true);
         $dto->published_at = $data['published_at'] ?? null;
+        $dto->issue_id = $data['issue_id'] ?? null;
         $dto->created_at = $data['created_at'] ?? null;
         $dto->updated_at = $data['updated_at'] ?? null;
 
@@ -106,6 +108,7 @@ class ArticleDTO
             'content' => $this->content,
             'is_published' => $this->is_published,
             'published_at' => $this->published_at,
+            'issue_id' => $this->issue_id,
             'category' => $this->category?->toArray(),
             'author' => $this->author?->toArray(),
             'feature_image' => $this->feature_image?->toArray(),

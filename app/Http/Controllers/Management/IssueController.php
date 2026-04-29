@@ -21,7 +21,7 @@ class IssueController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = (int) $request->integer('per_page', 15);
-        $perPage = max(1, min(50, $perPage));
+        $perPage = max(1, min(200, $perPage));
         $filters = [
             'search' => $request->input('search'),
             'year' => $request->input('year'),
