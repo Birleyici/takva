@@ -26,7 +26,7 @@ const videoCategoryStore = useVideoCategoryStore();
 const form = reactive({
     title: '',
     youtube_url: '',
-    video_category_id: null,
+    video_category_id: '',
     description: '',
     is_active: true,
 });
@@ -51,7 +51,7 @@ watch(
         if (video) {
             form.title = video.title ?? '';
             form.youtube_url = video.youtube_url ?? '';
-            form.video_category_id = video.video_category_id ?? video.category?.id ?? null;
+            form.video_category_id = video.video_category_id ?? video.category?.id ?? '';
             form.description = video.description ?? '';
             form.is_active = video.is_active ?? true;
         } else {
@@ -66,7 +66,7 @@ watch(
 function resetForm() {
     form.title = '';
     form.youtube_url = '';
-    form.video_category_id = null;
+    form.video_category_id = '';
     form.description = '';
     form.is_active = true;
 }
@@ -200,8 +200,9 @@ async function handleSubmit() {
                 <select
                     v-model="form.video_category_id"
                     class="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-secondary-900 shadow-sm transition focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                    :required="!isEditMode"
                 >
-                    <option :value="null">Kategori seçin</option>
+                    <option value="" disabled>Kategori seçin</option>
                     <option v-for="category in videoCategories" :key="category.id" :value="category.id">
                         {{ category.name }}
                     </option>
