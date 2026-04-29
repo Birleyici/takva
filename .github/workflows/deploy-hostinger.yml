@@ -62,7 +62,7 @@ jobs:
 
       - name: Sync Laravel app to server
         run: |
-          rsync -az --delete \
+          rsync -a --delete \
             --exclude ".git/" \
             --exclude ".github/" \
             --exclude "node_modules/" \
@@ -74,15 +74,18 @@ jobs:
 
       - name: Sync public files to public_html
         run: |
-          rsync -az --delete \
+          rsync -a --delete \
             --exclude "index.php" \
             --exclude "storage/" \
+            --exclude "hot" \
+            --exclude "*.sql" \
+            --exclude "*.zip" \
             -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
             ./public/ "$SSH_USER@$SSH_HOST:$PUBLIC_PATH/"
 
       - name: Upload Hostinger index.php
         run: |
-          rsync -az \
+          rsync -a \
             -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
             ./deploy/hostinger/index.php "$SSH_USER@$SSH_HOST:$PUBLIC_PATH/index.php"
 
