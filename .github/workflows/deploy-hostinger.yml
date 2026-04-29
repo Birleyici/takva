@@ -113,11 +113,22 @@ jobs:
             exit 1
           fi
 
+          echo "Deploy path: $(pwd)"
+          echo "DB connection preview from .env:"
+          grep -E '^(DB_HOST|DB_PORT|DB_DATABASE|DB_USERNAME)=' .env || true
+
           mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
 
           composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
 
-          php artisan optimize:clear
+          # Avoid cache:clear during deploy, because database cache driver
+          # can fail before new DB credentials are applied.
+          rm -f bootstrap/cache/config.php bootstrap/cache/routes.php bootstrap/cache/events.php bootstrap/cache/packages.php bootstrap/cache/services.php
+          php artisan config:clear
+          php artisan route:clear || true
+          php artisan view:clear || true
+          php artisan event:clear || true
+          php artisan clear-compiled || true
 
           if [ "$RUN_MIGRATIONS" = "true" ]; then
             php artisan migrate --force

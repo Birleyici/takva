@@ -63,3 +63,5 @@ base64 .env | tr -d '\n'
 
 - Hostinger panelindeki Git Deploy özelliğini bu akışla aynı anda kullanmayın; iki farklı sistem aynı dosyaları yönetmesin.
 - `public/hot` dosyası build sırasında silinir; production'da kalmamalı.
+- Deploy logunda `.env` içinden `DB_HOST/DB_PORT/DB_DATABASE/DB_USERNAME` önizlemesi yazdırılır; hangi dosyanın okunduğunu doğrulamak için.
+- Deploy sırasında `cache:clear` çağrısı atlanır; `CACHE_STORE=database` kullanılırken eski DB bilgileriyle hata döngüsüne girmesin diye.
