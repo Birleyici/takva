@@ -95,16 +95,22 @@ jobs:
 
           cd "$APP_PATH"
 
-          if [ ! -f .env ]; then
-            if [ -n "$ENV_FILE_B64" ]; then
-              echo "Creating .env from HOSTINGER_ENV_FILE_B64 secret"
-              printf '%s' "$ENV_FILE_B64" | base64 -d > .env
-              chmod 600 .env
-            else
-              echo "ERROR: .env not found at $APP_PATH"
-              echo "Create $APP_PATH/.env on server or set HOSTINGER_ENV_FILE_B64 secret."
+          if [ -n "$ENV_FILE_B64" ]; then
+            echo "Syncing .env from HOSTINGER_ENV_FILE_B64 secret"
+            printf '%s' "$ENV_FILE_B64" | base64 -d > .env.tmp
+
+            if ! grep -q '^APP_KEY=' .env.tmp; then
+              echo "ERROR: HOSTINGER_ENV_FILE_B64 does not decode to a valid Laravel .env file."
+              rm -f .env.tmp
               exit 1
             fi
+
+            mv .env.tmp .env
+            chmod 600 .env
+          elif [ ! -f .env ]; then
+            echo "ERROR: .env not found at $APP_PATH"
+            echo "Create $APP_PATH/.env on server or set HOSTINGER_ENV_FILE_B64 secret."
+            exit 1
           fi
 
           mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache

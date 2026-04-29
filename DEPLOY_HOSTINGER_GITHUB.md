@@ -23,7 +23,7 @@ Repository -> Settings -> Secrets and variables -> Actions -> New repository sec
 - `HOSTINGER_SSH_KEY` -> Private key (GitHub Actions için)
 - `HOSTINGER_APP_PATH` -> Laravel path (örn: `/home/u976366413/laravel`)
 - `HOSTINGER_PUBLIC_PATH` -> Public path (örn: `/home/u976366413/public_html`)
-- `HOSTINGER_ENV_FILE_B64` (opsiyonel) -> `.env` dosyasının base64 hali (ilk deploy için faydalı)
+- `HOSTINGER_ENV_FILE_B64` (opsiyonel) -> `.env` dosyasının base64 hali (set edilirse her deploy'da `.env` bununla güncellenir)
 
 Opsiyonel değişken:
 
