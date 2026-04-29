@@ -155,6 +155,25 @@
                                 <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
                             @enderror
                         </div>
+                        <div>
+                            <label for="contact-captcha" class="block text-sm font-medium text-secondary-900">
+                                Güvenlik doğrulaması: {{ $captchaQuestion }} = ?
+                            </label>
+                            <input
+                                id="contact-captcha"
+                                type="text"
+                                name="captcha"
+                                value="{{ old('captcha') }}"
+                                inputmode="numeric"
+                                pattern="[0-9]*"
+                                placeholder="Sonucu yazın"
+                                class="mt-2 w-full rounded-xl border border-neutral-200 px-4 py-3 text-sm text-secondary-900 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                                required
+                            >
+                            @error('captcha')
+                                <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+                            @enderror
+                        </div>
                         <button type="submit" class="inline-flex items-center justify-center rounded-2xl bg-primary-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary-600/20 transition hover:bg-primary-500">
                             Mesajı Gönder
                         </button>

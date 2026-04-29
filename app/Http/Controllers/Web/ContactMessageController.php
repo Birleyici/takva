@@ -21,6 +21,7 @@ class ContactMessageController extends Controller
         $data['user_agent'] = $request->userAgent();
 
         $this->contactMessageService->create($data);
+        $request->session()->forget('contact_captcha_answer');
 
         return redirect()
             ->route('contact.show')
