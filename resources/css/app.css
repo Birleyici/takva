@@ -231,6 +231,14 @@
     @apply text-primary-700 decoration-primary-400;
   }
 
+  .article-body a.citation-ref {
+    @apply ml-0.5 align-super text-xs font-semibold no-underline;
+  }
+
+  .article-body a.citation-backref {
+    @apply text-xs text-neutral-500 no-underline;
+  }
+
   .article-body strong {
     @apply text-secondary-900 font-semibold;
   }

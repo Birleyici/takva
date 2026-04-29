@@ -297,11 +297,354 @@ class ArticleContentNormalizer
             }
         }
 
+        $this->linkBracketReferences($dom, $xpath);
+
         $html = '';
         foreach ($root->childNodes as $child) {
             $html .= $dom->saveHTML($child);
         }
 
         return $html ?: $content;
+    }
+
+    private function linkBracketReferences(\DOMDocument $dom, \DOMXPath $xpath): void
+    {
+        $candidateNumbers = $this->extractCandidateReferenceNumbers($xpath);
+        if ($candidateNumbers === []) {
+            return;
+        }
+
+        $sourceTargets = $this->collectSourceTargets($xpath, $candidateNumbers);
+        if ($sourceTargets === []) {
+            return;
+        }
+
+        $this->retargetLegacyReferenceAnchors($xpath, $sourceTargets);
+        $citationTargets = $this->linkInlineBracketReferences($dom, $xpath, $sourceTargets);
+        $this->appendBackLinksToSources($dom, $sourceTargets, $citationTargets);
+    }
+
+    /**
+     * @return array<string, true>
+     */
+    private function extractCandidateReferenceNumbers(\DOMXPath $xpath): array
+    {
+        $numbers = [];
+        $textNodes = $xpath->query('//text()[normalize-space(.) != ""]');
+
+        if (!$textNodes) {
+            return $numbers;
+        }
+
+        foreach ($textNodes as $textNode) {
+            if (!$textNode instanceof \DOMText) {
+                continue;
+            }
+
+            if ($this->hasAncestorTag($textNode, ['a', 'script', 'style'])) {
+                continue;
+            }
+
+            if (!preg_match_all('/\[(\d{1,3})\]/', $textNode->nodeValue ?? '', $matches)) {
+                continue;
+            }
+
+            foreach ($matches[1] as $number) {
+                $numbers[$number] = true;
+            }
+        }
+
+        return $numbers;
+    }
+
+    /**
+     * @param array<string, true> $candidateNumbers
+     * @return array<string, array{id: string, node: \DOMElement}>
+     */
+    private function collectSourceTargets(\DOMXPath $xpath, array $candidateNumbers): array
+    {
+        $targets = [];
+        $elements = $xpath->query('//*[self::p or self::li or self::div]');
+
+        if (!$elements) {
+            return $targets;
+        }
+
+        foreach ($elements as $element) {
+            if (!$element instanceof \DOMElement) {
+                continue;
+            }
+
+            $referenceNumber = $this->extractSourceReferenceNumber($element);
+            if ($referenceNumber === null || !isset($candidateNumbers[$referenceNumber])) {
+                continue;
+            }
+
+            if (isset($targets[$referenceNumber])) {
+                continue;
+            }
+
+            $id = trim($element->getAttribute('id'));
+            if ($id === '') {
+                $id = 'source-ref-'.$referenceNumber;
+                $suffix = 2;
+
+                while ($this->elementIdExists($xpath, $id)) {
+                    $id = 'source-ref-'.$referenceNumber.'-'.$suffix;
+                    $suffix++;
+                }
+
+                $element->setAttribute('id', $id);
+            }
+
+            $targets[$referenceNumber] = [
+                'id' => $id,
+                'node' => $element,
+            ];
+        }
+
+        return $targets;
+    }
+
+    private function extractSourceReferenceNumber(\DOMElement $element): ?string
+    {
+        $id = trim($element->getAttribute('id'));
+        if ($id !== '' && preg_match('/(?:^|[^a-z])ftn(\d+)/i', $id, $matches)) {
+            return $matches[1];
+        }
+
+        $text = trim($element->textContent ?? '');
+        if ($text === '') {
+            return null;
+        }
+
+        if (preg_match('/^\[(\d{1,3})\]/', $text, $matches)) {
+            return $matches[1];
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<string, array{id: string, node: \DOMElement}> $sourceTargets
+     */
+    private function retargetLegacyReferenceAnchors(\DOMXPath $xpath, array $sourceTargets): void
+    {
+        $anchors = $xpath->query('//a[@id and starts-with(@id, "ftnref")]');
+
+        if (!$anchors) {
+            return;
+        }
+
+        foreach ($anchors as $anchor) {
+            if (!$anchor instanceof \DOMElement) {
+                continue;
+            }
+
+            $id = $anchor->getAttribute('id');
+            if (!preg_match('/ftnref(\d+)/i', $id, $matches)) {
+                continue;
+            }
+
+            $number = $matches[1];
+            if (!isset($sourceTargets[$number])) {
+                continue;
+            }
+
+            $anchor->setAttribute('href', '#'.$sourceTargets[$number]['id']);
+            $this->appendClass($anchor, 'citation-ref');
+        }
+    }
+
+    /**
+     * @param array<string, array{id: string, node: \DOMElement}> $sourceTargets
+     * @return array<string, string>
+     */
+    private function linkInlineBracketReferences(
+        \DOMDocument $dom,
+        \DOMXPath $xpath,
+        array $sourceTargets
+    ): array {
+        $citationTargets = [];
+        $citationCounts = [];
+        $sourceNodeIds = [];
+
+        foreach ($sourceTargets as $target) {
+            $sourceNodeIds[spl_object_id($target['node'])] = true;
+        }
+
+        $nodeList = $xpath->query('//text()[normalize-space(.) != ""]');
+        if (!$nodeList) {
+            return $citationTargets;
+        }
+
+        $textNodes = [];
+        foreach ($nodeList as $node) {
+            if ($node instanceof \DOMText) {
+                $textNodes[] = $node;
+            }
+        }
+
+        foreach ($textNodes as $textNode) {
+            if ($this->hasAncestorTag($textNode, ['a', 'script', 'style'])) {
+                continue;
+            }
+
+            if ($this->hasAncestorInSet($textNode, $sourceNodeIds)) {
+                continue;
+            }
+
+            $text = $textNode->nodeValue ?? '';
+            if ($text === '' || !preg_match_all('/\[(\d{1,3})\]/', $text, $matches, PREG_OFFSET_CAPTURE)) {
+                continue;
+            }
+
+            $fragment = $dom->createDocumentFragment();
+            $cursor = 0;
+            $changed = false;
+
+            foreach ($matches[0] as $index => $fullMatch) {
+                $fullText = $fullMatch[0];
+                $offset = $fullMatch[1];
+                $number = $matches[1][$index][0];
+
+                if (!isset($sourceTargets[$number])) {
+                    continue;
+                }
+
+                $fragment->appendChild($dom->createTextNode(substr($text, $cursor, $offset - $cursor)));
+
+                $citationCounts[$number] = ($citationCounts[$number] ?? 0) + 1;
+                $citationId = 'citation-ref-'.$number.'-'.$citationCounts[$number];
+
+                $anchor = $dom->createElement('a', '['.$number.']');
+                $anchor->setAttribute('id', $citationId);
+                $anchor->setAttribute('href', '#'.$sourceTargets[$number]['id']);
+                $anchor->setAttribute('class', 'citation-ref');
+                $fragment->appendChild($anchor);
+
+                if (!isset($citationTargets[$number])) {
+                    $citationTargets[$number] = $citationId;
+                }
+
+                $cursor = $offset + strlen($fullText);
+                $changed = true;
+            }
+
+            if (!$changed) {
+                continue;
+            }
+
+            $fragment->appendChild($dom->createTextNode(substr($text, $cursor)));
+            $textNode->parentNode?->replaceChild($fragment, $textNode);
+        }
+
+        return $citationTargets;
+    }
+
+    /**
+     * @param array<string, array{id: string, node: \DOMElement}> $sourceTargets
+     * @param array<string, string> $citationTargets
+     */
+    private function appendBackLinksToSources(
+        \DOMDocument $dom,
+        array $sourceTargets,
+        array $citationTargets
+    ): void {
+        foreach ($sourceTargets as $number => $target) {
+            if (!isset($citationTargets[$number])) {
+                continue;
+            }
+
+            $sourceNode = $target['node'];
+            if ($this->hasBackLink($sourceNode)) {
+                continue;
+            }
+
+            $backLink = $dom->createElement('a', '[geri]');
+            $backLink->setAttribute('href', '#'.$citationTargets[$number]);
+            $backLink->setAttribute('class', 'citation-backref');
+            $backLink->setAttribute('aria-label', 'Atfa geri dön');
+
+            $sourceNode->appendChild($dom->createTextNode(' '));
+            $sourceNode->appendChild($backLink);
+        }
+    }
+
+    private function hasBackLink(\DOMElement $element): bool
+    {
+        foreach ($element->getElementsByTagName('a') as $anchor) {
+            if (!$anchor instanceof \DOMElement) {
+                continue;
+            }
+
+            if (str_contains(' '.$anchor->getAttribute('class').' ', ' citation-backref ')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array<int, true> $nodeIdSet
+     */
+    private function hasAncestorInSet(\DOMNode $node, array $nodeIdSet): bool
+    {
+        $parent = $node->parentNode;
+
+        while ($parent instanceof \DOMElement) {
+            if (isset($nodeIdSet[spl_object_id($parent)])) {
+                return true;
+            }
+
+            $parent = $parent->parentNode;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array<int, string> $tagNames
+     */
+    private function hasAncestorTag(\DOMNode $node, array $tagNames): bool
+    {
+        $tagLookup = array_fill_keys(array_map('strtolower', $tagNames), true);
+        $parent = $node->parentNode;
+
+        while ($parent instanceof \DOMElement) {
+            if (isset($tagLookup[strtolower($parent->tagName)])) {
+                return true;
+            }
+
+            $parent = $parent->parentNode;
+        }
+
+        return false;
+    }
+
+    private function elementIdExists(\DOMXPath $xpath, string $id): bool
+    {
+        if (!preg_match('/^[A-Za-z0-9\-_:.]+$/', $id)) {
+            return false;
+        }
+
+        $found = $xpath->query("//*[@id='{$id}']");
+
+        return $found !== false && $found->length > 0;
+    }
+
+    private function appendClass(\DOMElement $element, string $className): void
+    {
+        $classes = array_filter(
+            array_map('trim', explode(' ', (string) $element->getAttribute('class')))
+        );
+
+        if (in_array($className, $classes, true)) {
+            return;
+        }
+
+        $classes[] = $className;
+        $element->setAttribute('class', implode(' ', $classes));
     }
 }

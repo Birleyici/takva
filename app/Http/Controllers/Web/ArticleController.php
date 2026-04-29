@@ -6,11 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\Author;
 use App\Models\Category;
+use App\Services\ArticleContentNormalizer;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ArticleController extends Controller
 {
+    public function __construct(
+        private readonly ArticleContentNormalizer $contentNormalizer
+    ) {
+    }
+
     public function index(Request $request, ?Category $category = null, ?Author $author = null): View
     {
         $articlesQuery = Article::query()
@@ -118,6 +124,12 @@ class ArticleController extends Controller
         abort_unless($article->is_published, 404);
         $article->increment('view_count');
         $article->loadMissing(['author.profileImage', 'category', 'featureImage']);
+
+        $normalizedContent = $this->contentNormalizer->normalize($article->content);
+        if ($normalizedContent !== $article->content) {
+            $article->content = $normalizedContent;
+            $article->save();
+        }
 
         $relatedArticles = Article::query()
             ->with('featureImage')
