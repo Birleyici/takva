@@ -309,19 +309,128 @@ class ArticleContentNormalizer
 
     private function linkBracketReferences(\DOMDocument $dom, \DOMXPath $xpath): void
     {
+        $this->stripLegacyReferenceAnchors($dom, $xpath);
+
         $candidateNumbers = $this->extractCandidateReferenceNumbers($xpath);
         if ($candidateNumbers === []) {
             return;
         }
 
-        $sourceTargets = $this->collectSourceTargets($xpath, $candidateNumbers);
+        $sourceTargets = $this->collectSourceTargets($dom, $xpath, $candidateNumbers);
         if ($sourceTargets === []) {
             return;
         }
 
         $this->retargetLegacyReferenceAnchors($xpath, $sourceTargets);
         $citationTargets = $this->linkInlineBracketReferences($dom, $xpath, $sourceTargets);
-        $this->appendBackLinksToSources($dom, $sourceTargets, $citationTargets);
+        $this->linkSourcesToCitations($sourceTargets, $citationTargets);
+    }
+
+    private function stripLegacyReferenceAnchors(\DOMDocument $dom, \DOMXPath $xpath): void
+    {
+        $anchors = $xpath->query('//a');
+
+        if (!$anchors) {
+            return;
+        }
+
+        $anchorList = [];
+        foreach ($anchors as $anchor) {
+            if ($anchor instanceof \DOMElement) {
+                $anchorList[] = $anchor;
+            }
+        }
+
+        foreach ($anchorList as $anchor) {
+            if (!$this->isLegacyReferenceAnchor($anchor)) {
+                continue;
+            }
+
+            if ($this->isBackReferenceAnchor($anchor)) {
+                $anchor->parentNode?->removeChild($anchor);
+                continue;
+            }
+
+            $label = $this->extractReferenceLabelFromAnchor($anchor);
+            if ($label === '') {
+                $anchor->parentNode?->removeChild($anchor);
+                continue;
+            }
+
+            $anchor->parentNode?->replaceChild($dom->createTextNode($label), $anchor);
+        }
+    }
+
+    private function isLegacyReferenceAnchor(\DOMElement $anchor): bool
+    {
+        $className = $anchor->getAttribute('class');
+        if (
+            str_contains(' '.$className.' ', ' citation-ref ')
+            || str_contains(' '.$className.' ', ' citation-backref ')
+        ) {
+            return true;
+        }
+
+        $text = trim(preg_replace('/\s+/', ' ', $anchor->textContent ?? '') ?? '');
+        if ($text !== '' && preg_match('/^\[(\d{1,3}|geri)\]$/iu', $text)) {
+            return true;
+        }
+
+        foreach (['href', 'id', 'name'] as $attribute) {
+            $value = strtolower(trim($anchor->getAttribute($attribute)));
+            if ($value === '') {
+                continue;
+            }
+
+            if (
+                str_contains($value, 'ftn')
+                || str_contains($value, 'citation-ref')
+                || str_contains($value, 'source-ref')
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function isBackReferenceAnchor(\DOMElement $anchor): bool
+    {
+        $className = $anchor->getAttribute('class');
+        if (str_contains(' '.$className.' ', ' citation-backref ')) {
+            return true;
+        }
+
+        $text = trim(Str::lower($anchor->textContent ?? ''));
+
+        return $text === '[geri]' || $text === 'geri';
+    }
+
+    private function extractReferenceLabelFromAnchor(\DOMElement $anchor): string
+    {
+        $text = trim(preg_replace('/\s+/', ' ', $anchor->textContent ?? '') ?? '');
+        if ($text !== '') {
+            if (preg_match('/^\[(\d{1,3})\]$/', $text, $matches)) {
+                return '['.$matches[1].']';
+            }
+
+            if (preg_match('/^(\d{1,3})$/', $text, $matches)) {
+                return '['.$matches[1].']';
+            }
+        }
+
+        foreach (['href', 'id', 'name'] as $attribute) {
+            $value = $anchor->getAttribute($attribute);
+            if ($value === '') {
+                continue;
+            }
+
+            if (preg_match('/(?:_?ftnref|_?ftn|source-ref-)(\d{1,3})/i', $value, $matches)) {
+                return '['.$matches[1].']';
+            }
+        }
+
+        return $text;
     }
 
     /**
@@ -361,9 +470,15 @@ class ArticleContentNormalizer
      * @param array<string, true> $candidateNumbers
      * @return array<string, array{id: string, node: \DOMElement}>
      */
-    private function collectSourceTargets(\DOMXPath $xpath, array $candidateNumbers): array
+    private function collectSourceTargets(
+        \DOMDocument $dom,
+        \DOMXPath $xpath,
+        array $candidateNumbers
+    ): array
     {
         $targets = [];
+        $this->collectLineStartSourceLabels($dom, $xpath, $candidateNumbers, $targets);
+
         $elements = $xpath->query('//*[self::p or self::li or self::div]');
 
         if (!$elements) {
@@ -404,6 +519,183 @@ class ArticleContentNormalizer
         }
 
         return $targets;
+    }
+
+    /**
+     * @param array<string, true> $candidateNumbers
+     * @param array<string, array{id: string, node: \DOMElement}> $targets
+     */
+    private function collectLineStartSourceLabels(
+        \DOMDocument $dom,
+        \DOMXPath $xpath,
+        array $candidateNumbers,
+        array &$targets
+    ): void {
+        $nodeList = $xpath->query('//text()[normalize-space(.) != ""]');
+        if (!$nodeList) {
+            return;
+        }
+
+        $textNodes = [];
+        foreach ($nodeList as $node) {
+            if ($node instanceof \DOMText) {
+                $textNodes[] = $node;
+            }
+        }
+
+        foreach ($textNodes as $textNode) {
+            if ($this->hasAncestorTag($textNode, ['a', 'script', 'style'])) {
+                continue;
+            }
+
+            $text = $textNode->nodeValue ?? '';
+            if ($text === '' || !preg_match_all('/\[(\d{1,3})\]/', $text, $matches, PREG_OFFSET_CAPTURE)) {
+                continue;
+            }
+
+            $fragment = $dom->createDocumentFragment();
+            $cursor = 0;
+            $changed = false;
+
+            foreach ($matches[0] as $index => $fullMatch) {
+                $fullText = $fullMatch[0];
+                $offset = $fullMatch[1];
+                $number = $matches[1][$index][0];
+
+                if ($offset < $cursor) {
+                    continue;
+                }
+
+                $fragment->appendChild($dom->createTextNode(substr($text, $cursor, $offset - $cursor)));
+                $cursor = $offset + strlen($fullText);
+
+                if (!isset($candidateNumbers[$number])) {
+                    $fragment->appendChild($dom->createTextNode($fullText));
+                    continue;
+                }
+
+                if (!$this->isLineStartMatch($textNode, $text, $offset)) {
+                    $fragment->appendChild($dom->createTextNode($fullText));
+                    continue;
+                }
+
+                if (isset($targets[$number])) {
+                    $fragment->appendChild($dom->createTextNode($fullText));
+                    continue;
+                }
+
+                $id = 'source-ref-'.$number;
+                if ($this->elementIdExists($xpath, $id)) {
+                    $suffix = 2;
+                    while ($this->elementIdExists($xpath, $id.'-'.$suffix)) {
+                        $suffix++;
+                    }
+                    $id .= '-'.$suffix;
+                }
+
+                $anchor = $dom->createElement('a', '['.$number.']');
+                $anchor->setAttribute('id', $id);
+                $anchor->setAttribute('class', 'citation-source');
+                $fragment->appendChild($anchor);
+
+                $targets[$number] = [
+                    'id' => $id,
+                    'node' => $anchor,
+                ];
+                $changed = true;
+            }
+
+            if (!$changed) {
+                continue;
+            }
+
+            $fragment->appendChild($dom->createTextNode(substr($text, $cursor)));
+            $textNode->parentNode?->replaceChild($fragment, $textNode);
+        }
+    }
+
+    private function isLineStartMatch(\DOMText $textNode, string $text, int $offset): bool
+    {
+        if ($offset <= 0) {
+            return $this->isStartOfVisualLine($textNode);
+        }
+
+        $before = substr($text, 0, $offset);
+        if ($before === false) {
+            return false;
+        }
+
+        $lastNlPos = strrpos($before, "\n");
+        $lastCrPos = strrpos($before, "\r");
+
+        if ($lastNlPos === false && $lastCrPos === false) {
+            if (!$this->isWhitespaceOnly($before)) {
+                return false;
+            }
+
+            return $this->isStartOfVisualLine($textNode);
+        }
+
+        $lineBreakPos = max(
+            $lastNlPos === false ? -1 : $lastNlPos,
+            $lastCrPos === false ? -1 : $lastCrPos
+        );
+
+        $prefix = substr($before, $lineBreakPos + 1);
+
+        return $prefix !== false && $this->isWhitespaceOnly($prefix);
+    }
+
+    private function isStartOfVisualLine(\DOMText $textNode): bool
+    {
+        $current = $textNode;
+        $sibling = $current->previousSibling;
+
+        while ($sibling !== null) {
+            if ($sibling instanceof \DOMComment) {
+                $sibling = $sibling->previousSibling;
+                continue;
+            }
+
+            if ($sibling instanceof \DOMText) {
+                $content = $sibling->nodeValue ?? '';
+                if ($this->isWhitespaceOnly($content)) {
+                    $sibling = $sibling->previousSibling;
+                    continue;
+                }
+
+                return false;
+            }
+
+            if ($sibling instanceof \DOMElement) {
+                $tagName = strtolower($sibling->tagName);
+                if ($tagName === 'br') {
+                    return true;
+                }
+
+                if ($this->isWhitespaceOnly($sibling->textContent ?? '')) {
+                    $sibling = $sibling->previousSibling;
+                    continue;
+                }
+
+                return false;
+            }
+
+            $sibling = $sibling->previousSibling;
+        }
+
+        return true;
+    }
+
+    private function isWhitespaceOnly(string $value): bool
+    {
+        $normalized = str_replace(
+            ["\u{00A0}", "\u{2007}", "\u{202F}", "\u{FEFF}", '&nbsp;', '&#160;'],
+            ' ',
+            $value
+        );
+
+        return trim($normalized) === '';
     }
 
     private function extractSourceReferenceNumber(\DOMElement $element): ?string
@@ -546,44 +838,84 @@ class ArticleContentNormalizer
      * @param array<string, array{id: string, node: \DOMElement}> $sourceTargets
      * @param array<string, string> $citationTargets
      */
-    private function appendBackLinksToSources(
-        \DOMDocument $dom,
-        array $sourceTargets,
-        array $citationTargets
-    ): void {
+    private function linkSourcesToCitations(array $sourceTargets, array $citationTargets): void
+    {
         foreach ($sourceTargets as $number => $target) {
             if (!isset($citationTargets[$number])) {
                 continue;
             }
 
             $sourceNode = $target['node'];
-            if ($this->hasBackLink($sourceNode)) {
+            if (strtolower($sourceNode->tagName) !== 'a') {
+                $this->linkSourceLabelWithinElement($sourceNode, $number, $citationTargets[$number]);
                 continue;
             }
 
-            $backLink = $dom->createElement('a', '[geri]');
-            $backLink->setAttribute('href', '#'.$citationTargets[$number]);
-            $backLink->setAttribute('class', 'citation-backref');
-            $backLink->setAttribute('aria-label', 'Atfa geri dön');
-
-            $sourceNode->appendChild($dom->createTextNode(' '));
-            $sourceNode->appendChild($backLink);
+            $sourceNode->setAttribute('href', '#'.$citationTargets[$number]);
+            $this->appendClass($sourceNode, 'citation-source');
         }
     }
 
-    private function hasBackLink(\DOMElement $element): bool
-    {
-        foreach ($element->getElementsByTagName('a') as $anchor) {
-            if (!$anchor instanceof \DOMElement) {
+    private function linkSourceLabelWithinElement(
+        \DOMElement $sourceNode,
+        string $number,
+        string $citationId
+    ): void {
+        $dom = $sourceNode->ownerDocument;
+        if (!$dom instanceof \DOMDocument) {
+            return;
+        }
+
+        $xpath = new \DOMXPath($dom);
+        $textNodes = $xpath->query('.//text()[normalize-space(.) != ""]', $sourceNode);
+        if (!$textNodes) {
+            return;
+        }
+
+        foreach ($textNodes as $textNode) {
+            if (!$textNode instanceof \DOMText) {
                 continue;
             }
 
-            if (str_contains(' '.$anchor->getAttribute('class').' ', ' citation-backref ')) {
-                return true;
+            if ($this->hasAncestorTag($textNode, ['a', 'script', 'style'])) {
+                continue;
             }
-        }
 
-        return false;
+            $text = $textNode->nodeValue ?? '';
+            if ($text === '') {
+                continue;
+            }
+
+            $pattern = '/\['.preg_quote($number, '/').'\]/';
+            if (!preg_match($pattern, $text, $match, PREG_OFFSET_CAPTURE)) {
+                continue;
+            }
+
+            $fullMatch = $match[0][0];
+            $offset = $match[0][1];
+            if (!is_int($offset)) {
+                continue;
+            }
+
+            $before = substr($text, 0, $offset);
+            $after = substr($text, $offset + strlen($fullMatch));
+            if ($before === false || $after === false) {
+                continue;
+            }
+
+            $fragment = $dom->createDocumentFragment();
+            $fragment->appendChild($dom->createTextNode($before));
+
+            $anchor = $dom->createElement('a', '['.$number.']');
+            $anchor->setAttribute('href', '#'.$citationId);
+            $anchor->setAttribute('class', 'citation-source');
+            $fragment->appendChild($anchor);
+            $fragment->appendChild($dom->createTextNode($after));
+
+            $textNode->parentNode?->replaceChild($fragment, $textNode);
+
+            return;
+        }
     }
 
     /**
