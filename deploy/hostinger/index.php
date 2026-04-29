@@ -46,4 +46,8 @@ require $basePath.'/vendor/autoload.php';
 /** @var Application $app */
 $app = require_once $basePath.'/bootstrap/app.php';
 
+// Laravel'in public path'ini gerçek web root (public_html) olarak sabitle.
+// Boylece @vite manifestini her zaman domainin sundugu build klasorunden okur.
+$app->usePublicPath(__DIR__);
+
 $app->handleRequest(Request::capture());
