@@ -54,7 +54,7 @@ Sitenin tamamında kullanılan 4 doğal ve uyumlu İslami renk:
 ```
 
 
-
+.
 ## Renkleri Değiştirme
 
 ### 1. Tailwind Config'de Değiştirme
