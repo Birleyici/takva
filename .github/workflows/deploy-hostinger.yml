@@ -17,6 +17,7 @@ jobs:
       SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
       SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
       SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
+      SSH_PRIVATE_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
       APP_PATH: ${{ secrets.HOSTINGER_APP_PATH }}
       PUBLIC_PATH: ${{ secrets.HOSTINGER_PUBLIC_PATH }}
       RUN_MIGRATIONS: ${{ vars.RUN_MIGRATIONS }}
@@ -46,18 +47,35 @@ jobs:
           npm run build
           rm -f public/hot
 
+      - name: Validate deploy configuration
+        run: |
+          set -euo pipefail
+          [ -n "${SSH_HOST:-}" ] || { echo "ERROR: HOSTINGER_SSH_HOST secret is empty."; exit 1; }
+          [ -n "${SSH_PORT:-}" ] || { echo "ERROR: HOSTINGER_SSH_PORT secret is empty."; exit 1; }
+          [ -n "${SSH_USER:-}" ] || { echo "ERROR: HOSTINGER_SSH_USER secret is empty."; exit 1; }
+          [ -n "${SSH_PRIVATE_KEY:-}" ] || { echo "ERROR: HOSTINGER_SSH_KEY secret is empty."; exit 1; }
+          [ -n "${APP_PATH:-}" ] || { echo "ERROR: HOSTINGER_APP_PATH secret is empty."; exit 1; }
+          [ -n "${PUBLIC_PATH:-}" ] || { echo "ERROR: HOSTINGER_PUBLIC_PATH secret is empty."; exit 1; }
+          echo "Deploy config looks valid."
+          echo "Target user: $SSH_USER"
+          echo "Target port: $SSH_PORT"
+          echo "APP_PATH basename: $(basename "$APP_PATH")"
+          echo "PUBLIC_PATH basename: $(basename "$PUBLIC_PATH")"
+
       - name: Configure SSH
         run: |
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          printf '%s\n' "${{ secrets.HOSTINGER_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -p "$SSH_PORT" "$SSH_HOST" >> ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
+          set -euo pipefail
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" | sed 's/\r$//' > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          touch "$HOME/.ssh/known_hosts"
+          ssh-keyscan -T 10 -p "$SSH_PORT" "$SSH_HOST" >> "$HOME/.ssh/known_hosts" 2>/dev/null || true
+          chmod 644 "$HOME/.ssh/known_hosts"
 
       - name: Ensure remote directories exist
         run: |
-          ssh -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+          ssh -o StrictHostKeyChecking=accept-new -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
             "mkdir -p '$APP_PATH' '$PUBLIC_PATH'"
 
       - name: Sync Laravel app to server
@@ -69,7 +87,7 @@ jobs:
             --exclude "vendor/" \
             --exclude "storage/" \
             --exclude ".env" \
-            -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
+            -e "ssh -o StrictHostKeyChecking=accept-new -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
             ./ "$SSH_USER@$SSH_HOST:$APP_PATH/"
 
       - name: Sync public files to public_html
@@ -80,18 +98,18 @@ jobs:
             --exclude "hot" \
             --exclude "*.sql" \
             --exclude "*.zip" \
-            -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
+            -e "ssh -o StrictHostKeyChecking=accept-new -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
             ./public/ "$SSH_USER@$SSH_HOST:$PUBLIC_PATH/"
 
       - name: Upload Hostinger index.php
         run: |
           rsync -a \
-            -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
+            -e "ssh -o StrictHostKeyChecking=accept-new -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
             ./deploy/hostinger/index.php "$SSH_USER@$SSH_HOST:$PUBLIC_PATH/index.php"
 
       - name: Install PHP dependencies and optimize
         run: |
-          ssh -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+          ssh -o StrictHostKeyChecking=accept-new -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
             "APP_PATH='$APP_PATH' RUN_MIGRATIONS='${RUN_MIGRATIONS:-false}' bash -se" <<'EOF'
           set -e
 
