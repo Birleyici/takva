@@ -10,13 +10,12 @@ define('LARAVEL_START', microtime(true));
 | Resolve Laravel Base Path
 |--------------------------------------------------------------------------
 |
-| Shared hostingte app klasoru degisebilir (laravel, laravel2, vb.).
-| Once LARAVEL_BASE_PATH, sonra yaygin klasor adlari denenir.
+| Shared hostingte app klasoru degisebilir.
+| Once LARAVEL_BASE_PATH, sonra varsayilan laravel klasoru denenir.
 |
 */
 $candidates = array_filter([
     getenv('LARAVEL_BASE_PATH') ?: null,
-    __DIR__.'/../laravel2',
     __DIR__.'/../laravel',
 ]);
 

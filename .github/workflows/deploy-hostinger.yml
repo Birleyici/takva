@@ -20,7 +20,6 @@ jobs:
       APP_PATH: ${{ secrets.HOSTINGER_APP_PATH }}
       PUBLIC_PATH: ${{ secrets.HOSTINGER_PUBLIC_PATH }}
       RUN_MIGRATIONS: ${{ vars.RUN_MIGRATIONS }}
-      ENV_FILE_B64: ${{ secrets.HOSTINGER_ENV_FILE_B64 }}
 
     steps:
       - name: Checkout code
@@ -56,20 +55,6 @@ jobs:
           ssh-keyscan -p "$SSH_PORT" "$SSH_HOST" >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
 
-      - name: Prepare .env for deploy
-        run: |
-          if [ -f .env ]; then
-            echo "Using .env from repository checkout."
-          elif [ -n "$ENV_FILE_B64" ]; then
-            echo "Creating .env from HOSTINGER_ENV_FILE_B64."
-            printf '%s' "$ENV_FILE_B64" | base64 -d > .env
-            chmod 600 .env
-          else
-            echo "ERROR: .env not found in checkout and HOSTINGER_ENV_FILE_B64 is empty."
-            echo "Track .env temporarily (git add -f .env) or set HOSTINGER_ENV_FILE_B64."
-            exit 1
-          fi
-
       - name: Ensure remote directories exist
         run: |
           ssh -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
@@ -83,6 +68,7 @@ jobs:
             --exclude "node_modules/" \
             --exclude "vendor/" \
             --exclude "storage/" \
+            --exclude ".env" \
             -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
             ./ "$SSH_USER@$SSH_HOST:$APP_PATH/"
 
@@ -110,7 +96,7 @@ jobs:
 
           if [ ! -f .env ]; then
             echo "ERROR: .env not found at $APP_PATH"
-            echo "Deploy must include .env (or add HOSTINGER_ENV_FILE_B64)."
+            echo "Create $APP_PATH/.env on server manually."
             exit 1
           fi
 

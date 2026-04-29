@@ -23,7 +23,6 @@ Repository -> Settings -> Secrets and variables -> Actions -> New repository sec
 - `HOSTINGER_SSH_KEY` -> Private key (GitHub Actions için)
 - `HOSTINGER_APP_PATH` -> Laravel path (örn: `/home/u976366413/laravel`)
 - `HOSTINGER_PUBLIC_PATH` -> Public path (örn: `/home/u976366413/public_html`)
-- `HOSTINGER_ENV_FILE_B64` (opsiyonel) -> `.env` dosyasının base64 hali (set edilirse her deploy'da `.env` bununla güncellenir)
 
 Opsiyonel değişken:
 
@@ -44,20 +43,7 @@ Opsiyonel değişken:
 
 ## .env hatası için hızlı çözüm
 
-Eğer log'da `ERROR: .env not found` görürseniz:
-
-1. Ya sunucuda manuel `laravel/.env` oluşturun
-2. Ya da localde şu komutla base64 üretip `HOSTINGER_ENV_FILE_B64` secret'ına koyun:
-
-```bash
-base64 -w 0 .env
-```
-
-macOS için:
-
-```bash
-base64 .env | tr -d '\n'
-```
+Eğer log'da `ERROR: .env not found` görürseniz, sunucuda `$APP_PATH/.env` dosyasını manuel oluşturun.
 
 ## Notlar
 
@@ -65,4 +51,4 @@ base64 .env | tr -d '\n'
 - `public/hot` dosyası build sırasında silinir; production'da kalmamalı.
 - Deploy logunda `.env` içinden `DB_HOST/DB_PORT/DB_DATABASE/DB_USERNAME` önizlemesi yazdırılır; hangi dosyanın okunduğunu doğrulamak için.
 - Deploy sırasında `cache:clear` çağrısı atlanır; `CACHE_STORE=database` kullanılırken eski DB bilgileriyle hata döngüsüne girmesin diye.
-- Bu geçici modda `.env` deploy paketine dahil edilir. `.env` gitignore'da olduğu için runner'a gelmesi için geçici olarak `git add -f .env` ile track etmeniz gerekir (iş bitince geri alın).
+- `.env` deploy paketine dahil edilmez; sunucuda manuel yönetilir.
