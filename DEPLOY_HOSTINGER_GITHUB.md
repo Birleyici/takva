@@ -23,6 +23,7 @@ Repository -> Settings -> Secrets and variables -> Actions -> New repository sec
 - `HOSTINGER_SSH_KEY` -> Private key (GitHub Actions için)
 - `HOSTINGER_APP_PATH` -> Laravel path (örn: `/home/u976366413/laravel`)
 - `HOSTINGER_PUBLIC_PATH` -> Public path (örn: `/home/u976366413/public_html`)
+- `HOSTINGER_ENV_FILE_B64` (opsiyonel) -> `.env` dosyasının base64 hali (ilk deploy için faydalı)
 
 Opsiyonel değişken:
 
@@ -40,6 +41,23 @@ Opsiyonel değişken:
 1. `main` branch'e push yapın.
 2. GitHub -> Actions -> `Deploy to Hostinger` job'unu takip edin.
 3. İlk deploy sonrası siteyi test edin.
+
+## .env hatası için hızlı çözüm
+
+Eğer log'da `ERROR: .env not found` görürseniz:
+
+1. Ya sunucuda manuel `laravel/.env` oluşturun
+2. Ya da localde şu komutla base64 üretip `HOSTINGER_ENV_FILE_B64` secret'ına koyun:
+
+```bash
+base64 -w 0 .env
+```
+
+macOS için:
+
+```bash
+base64 .env | tr -d '\n'
+```
 
 ## Notlar
 

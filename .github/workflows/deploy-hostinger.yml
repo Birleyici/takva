@@ -20,6 +20,7 @@ jobs:
       APP_PATH: ${{ secrets.HOSTINGER_APP_PATH }}
       PUBLIC_PATH: ${{ secrets.HOSTINGER_PUBLIC_PATH }}
       RUN_MIGRATIONS: ${{ vars.RUN_MIGRATIONS }}
+      ENV_FILE_B64: ${{ secrets.HOSTINGER_ENV_FILE_B64 }}
 
     steps:
       - name: Checkout code
@@ -89,14 +90,21 @@ jobs:
       - name: Install PHP dependencies and optimize
         run: |
           ssh -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
-            "APP_PATH='$APP_PATH' RUN_MIGRATIONS='${RUN_MIGRATIONS:-false}' bash -se" <<'EOF'
+            "APP_PATH='$APP_PATH' RUN_MIGRATIONS='${RUN_MIGRATIONS:-false}' ENV_FILE_B64='$ENV_FILE_B64' bash -se" <<'EOF'
           set -e
 
           cd "$APP_PATH"
 
           if [ ! -f .env ]; then
-            echo "ERROR: .env not found at $APP_PATH"
-            exit 1
+            if [ -n "$ENV_FILE_B64" ]; then
+              echo "Creating .env from HOSTINGER_ENV_FILE_B64 secret"
+              printf '%s' "$ENV_FILE_B64" | base64 -d > .env
+              chmod 600 .env
+            else
+              echo "ERROR: .env not found at $APP_PATH"
+              echo "Create $APP_PATH/.env on server or set HOSTINGER_ENV_FILE_B64 secret."
+              exit 1
+            fi
           fi
 
           mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
