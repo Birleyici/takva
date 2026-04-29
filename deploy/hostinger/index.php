@@ -5,16 +5,46 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
-// Hostinger layout:
-// /home/<user>/laravel      -> app source
-// /home/<user>/public_html  -> web root
-if (file_exists($maintenance = __DIR__.'/../laravel/storage/framework/maintenance.php')) {
+/*
+|--------------------------------------------------------------------------
+| Resolve Laravel Base Path
+|--------------------------------------------------------------------------
+|
+| Shared hostingte app klasoru degisebilir (laravel, laravel2, vb.).
+| Once LARAVEL_BASE_PATH, sonra yaygin klasor adlari denenir.
+|
+*/
+$candidates = array_filter([
+    getenv('LARAVEL_BASE_PATH') ?: null,
+    __DIR__.'/../laravel2',
+    __DIR__.'/../laravel',
+]);
+
+$basePath = null;
+
+foreach ($candidates as $candidate) {
+    $resolved = realpath($candidate);
+
+    if ($resolved
+        && file_exists($resolved.'/bootstrap/app.php')
+        && file_exists($resolved.'/vendor/autoload.php')) {
+        $basePath = $resolved;
+        break;
+    }
+}
+
+if ($basePath === null) {
+    http_response_code(500);
+    exit('Laravel base path could not be resolved. Check public_html/index.php settings.');
+}
+
+if (file_exists($maintenance = $basePath.'/storage/framework/maintenance.php')) {
     require $maintenance;
 }
 
-require __DIR__.'/../laravel/vendor/autoload.php';
+require $basePath.'/vendor/autoload.php';
 
 /** @var Application $app */
-$app = require_once __DIR__.'/../laravel/bootstrap/app.php';
+$app = require_once $basePath.'/bootstrap/app.php';
 
 $app->handleRequest(Request::capture());

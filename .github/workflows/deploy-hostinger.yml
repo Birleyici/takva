@@ -117,11 +117,12 @@ jobs:
 
           composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
 
+          php artisan optimize:clear
+
           if [ "$RUN_MIGRATIONS" = "true" ]; then
             php artisan migrate --force
           fi
 
-          php artisan optimize:clear
           php artisan optimize
           chmod -R ug+rw storage bootstrap/cache
           EOF
