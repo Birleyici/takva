@@ -86,6 +86,7 @@ jobs:
             --exclude "node_modules/" \
             --exclude "vendor/" \
             --exclude "storage/" \
+            --exclude "public/storage" \
             --exclude ".env" \
             -e "ssh -o StrictHostKeyChecking=accept-new -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
             ./ "$SSH_USER@$SSH_HOST:$APP_PATH/"
@@ -94,6 +95,7 @@ jobs:
         run: |
           rsync -a --delete \
             --exclude "index.php" \
+            --exclude "storage" \
             --exclude "storage/" \
             --exclude "hot" \
             --exclude "*.sql" \
@@ -110,7 +112,7 @@ jobs:
       - name: Install PHP dependencies and optimize
         run: |
           ssh -o StrictHostKeyChecking=accept-new -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
-            "APP_PATH='$APP_PATH' RUN_MIGRATIONS='${RUN_MIGRATIONS:-false}' bash -se" <<'EOF'
+            "APP_PATH='$APP_PATH' PUBLIC_PATH='$PUBLIC_PATH' RUN_MIGRATIONS='${RUN_MIGRATIONS:-false}' bash -se" <<'EOF'
           set -e
 
           cd "$APP_PATH"
@@ -124,6 +126,23 @@ jobs:
           echo "Deploy path: $(pwd)"
           echo "DB connection preview from .env:"
           grep -E '^(DB_HOST|DB_PORT|DB_DATABASE|DB_USERNAME)=' .env || true
+
+          STORAGE_TARGET="$APP_PATH/storage/app/public"
+          PUBLIC_STORAGE="$PUBLIC_PATH/storage"
+          mkdir -p "$STORAGE_TARGET"
+
+          if [ -L "$PUBLIC_STORAGE" ]; then
+            ln -sfn "$STORAGE_TARGET" "$PUBLIC_STORAGE"
+          elif [ -d "$PUBLIC_STORAGE" ]; then
+            if [ -z "$(find "$PUBLIC_STORAGE" -mindepth 1 -print -quit)" ]; then
+              rmdir "$PUBLIC_STORAGE"
+              ln -s "$STORAGE_TARGET" "$PUBLIC_STORAGE"
+            else
+              echo "WARNING: $PUBLIC_STORAGE is a non-empty directory, leaving as-is."
+            fi
+          else
+            ln -s "$STORAGE_TARGET" "$PUBLIC_STORAGE"
+          fi
 
           mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
 
