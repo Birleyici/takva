@@ -65,3 +65,4 @@ base64 .env | tr -d '\n'
 - `public/hot` dosyası build sırasında silinir; production'da kalmamalı.
 - Deploy logunda `.env` içinden `DB_HOST/DB_PORT/DB_DATABASE/DB_USERNAME` önizlemesi yazdırılır; hangi dosyanın okunduğunu doğrulamak için.
 - Deploy sırasında `cache:clear` çağrısı atlanır; `CACHE_STORE=database` kullanılırken eski DB bilgileriyle hata döngüsüne girmesin diye.
+- Bu geçici modda `.env` deploy paketine dahil edilir. `.env` gitignore'da olduğu için runner'a gelmesi için geçici olarak `git add -f .env` ile track etmeniz gerekir (iş bitince geri alın).
