@@ -3,7 +3,7 @@
 @php
     $issuePdfUrl = $latestIssue?->pdf_url;
     if ($issuePdfUrl) {
-        $ctaUrl = $issuePdfUrl;
+        $ctaUrl = route('issues.read', $latestIssue);
         $ctaTarget = '_blank';
     } elseif ($latestIssue) {
         $ctaUrl = route('issues.show', $latestIssue);

@@ -19,6 +19,8 @@ class IssueDTO
     public ?string $pdf_url = null;
     public ?string $pdf_original_name = null;
     public ?int $pdf_size = null;
+    public int $read_count = 0;
+    public int $download_count = 0;
     public ?string $created_at = null;
     public ?string $updated_at = null;
 
@@ -56,6 +58,8 @@ class IssueDTO
         $dto->pdf_url = $data['pdf_url'] ?? null;
         $dto->pdf_original_name = $data['pdf_original_name'] ?? null;
         $dto->pdf_size = $data['pdf_size'] ?? null;
+        $dto->read_count = (int) ($data['read_count'] ?? 0);
+        $dto->download_count = (int) ($data['download_count'] ?? 0);
         $dto->created_at = $data['created_at'] ?? null;
         $dto->updated_at = $data['updated_at'] ?? null;
 
@@ -101,6 +105,8 @@ class IssueDTO
             'pdf_url' => $this->pdf_url,
             'pdf_original_name' => $this->pdf_original_name,
             'pdf_size' => $this->pdf_size,
+            'read_count' => $this->read_count,
+            'download_count' => $this->download_count,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

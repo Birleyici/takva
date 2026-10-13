@@ -17,10 +17,16 @@
             <h1 class="mt-6 text-4xl sm:text-5xl font-bold leading-tight">{{ $issue->title }}</h1>
             <div class="mt-8 flex flex-wrap justify-center gap-3">
                 @if($issue->pdf_url)
-                    <a href="{{ $issue->pdf_url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-2xl bg-accent-500 px-6 py-3 text-sm font-semibold text-secondary-900 shadow-sm transition hover:bg-accent-400">
+                    <a href="{{ route('issues.read', $issue) }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-2xl bg-accent-500 px-6 py-3 text-sm font-semibold text-secondary-900 shadow-sm transition hover:bg-accent-400">
                         Online Oku
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
+                        </svg>
+                    </a>
+                    <a href="{{ route('issues.download', $issue) }}" class="inline-flex items-center gap-2 rounded-2xl border border-white/30 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-white/10">
+                        PDF İndir
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" />
                         </svg>
                     </a>
                 @endif

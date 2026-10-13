@@ -84,11 +84,14 @@
                                 </p>
                                 <div class="flex flex-wrap gap-3 text-sm font-semibold">
                                     <a href="{{ route('issues.show', $issue->slug) }}" class="inline-flex flex-1 items-center justify-center rounded-xl border border-neutral-200 px-4 py-2 text-neutral-700 transition hover:border-primary-200 hover:text-primary-700">
-                                        Detayları Gör
+                                        Detaylar
                                     </a>
                                     @if($issue->pdf_url)
-                                        <a href="{{ $issue->pdf_url }}" target="_blank" rel="noopener" class="inline-flex flex-1 items-center justify-center rounded-xl bg-primary-500 px-4 py-2 text-white transition hover:bg-primary-600">
-                                            Online Oku
+                                        <a href="{{ route('issues.read', $issue) }}" target="_blank" rel="noopener" class="inline-flex flex-1 items-center justify-center rounded-xl bg-primary-500 px-4 py-2 text-white transition hover:bg-primary-600">
+                                            Oku
+                                        </a>
+                                        <a href="{{ route('issues.download', $issue) }}" class="inline-flex flex-1 items-center justify-center rounded-xl bg-accent-500 px-4 py-2 text-secondary-900 transition hover:bg-accent-400">
+                                            İndir
                                         </a>
                                     @endif
                                 </div>

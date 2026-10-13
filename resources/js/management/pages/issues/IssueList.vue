@@ -115,6 +115,8 @@ const monthOptions = [
     { value: 11, label: 'Kasım' },
     { value: 12, label: 'Aralık' },
 ];
+
+const formatNumber = (value) => Number(value ?? 0).toLocaleString('tr-TR');
 </script>
 
 <template>
@@ -189,17 +191,19 @@ const monthOptions = [
                             <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">Yıl</th>
                             <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">Ay</th>
                             <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">PDF</th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">Okunma</th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">İndirilme</th>
                             <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">İşlemler</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-neutral-100">
                         <tr v-if="loading">
-                            <td colspan="5" class="px-6 py-10 text-center text-sm text-neutral-500">
+                            <td colspan="7" class="px-6 py-10 text-center text-sm text-neutral-500">
                                 Sayılar yükleniyor...
                             </td>
                         </tr>
                         <tr v-else-if="!hasIssues">
-                            <td colspan="5" class="px-6 py-10 text-center text-sm text-neutral-500">
+                            <td colspan="7" class="px-6 py-10 text-center text-sm text-neutral-500">
                                 Henüz sayi eklenmemiş.
                             </td>
                         </tr>
@@ -221,6 +225,12 @@ const monthOptions = [
                                     PDF
                                 </a>
                                 <span v-else class="text-xs text-neutral-400">Yok</span>
+                            </td>
+                            <td class="px-6 py-5 text-right text-sm font-semibold text-secondary-900">
+                                {{ formatNumber(issue.read_count) }}
+                            </td>
+                            <td class="px-6 py-5 text-right text-sm font-semibold text-secondary-900">
+                                {{ formatNumber(issue.download_count) }}
                             </td>
                             <td class="px-6 py-5 text-right text-sm">
                                 <div class="inline-flex gap-3">

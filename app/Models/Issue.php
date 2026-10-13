@@ -23,6 +23,8 @@ class Issue extends Model
         'pdf_path',
         'pdf_original_name',
         'pdf_size',
+        'read_count',
+        'download_count',
     ];
 
     protected $casts = [
@@ -31,6 +33,8 @@ class Issue extends Model
         'month' => 'integer',
         'pdf_size' => 'integer',
         'cover_image_id' => 'integer',
+        'read_count' => 'integer',
+        'download_count' => 'integer',
     ];
 
     protected $appends = [

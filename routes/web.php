@@ -100,6 +100,8 @@ Route::get('/yazarlar', [WebAuthorController::class, 'index'])->name('authors.in
 
 Route::get('/son-sayi', [WebIssueController::class, 'latest'])->name('issues.latest');
 Route::get('/sayilar', [WebIssueController::class, 'index'])->name('issues.index');
+Route::get('/sayilar/{issue:slug}/oku', [WebIssueController::class, 'read'])->name('issues.read');
+Route::get('/sayilar/{issue:slug}/indir', [WebIssueController::class, 'download'])->name('issues.download');
 Route::get('/sayilar/{issue:slug}', [WebIssueController::class, 'show'])->name('issues.show');
 Route::get('/videolar', [WebVideoController::class, 'index'])->name('videos.index');
 Route::get('/videolar/{video:slug}', [WebVideoController::class, 'show'])->name('videos.show');

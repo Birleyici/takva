@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Issue;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class IssueController extends Controller
@@ -69,10 +70,35 @@ class IssueController extends Controller
         }
 
         if ($latestIssue->pdf_url) {
-            return redirect()->to($latestIssue->pdf_url);
+            return redirect()->route('issues.read', $latestIssue);
         }
 
         return redirect()->route('issues.show', $latestIssue);
+    }
+
+    public function read(Issue $issue)
+    {
+        abort_unless($issue->pdf_path, 404);
+        abort_unless(Storage::disk('public')->exists($issue->pdf_path), 404);
+
+        $issue->increment('read_count');
+
+        return response()->file(Storage::disk('public')->path($issue->pdf_path), [
+            'Content-Type' => 'application/pdf',
+        ]);
+    }
+
+    public function download(Issue $issue)
+    {
+        abort_unless($issue->pdf_path, 404);
+        abort_unless(Storage::disk('public')->exists($issue->pdf_path), 404);
+
+        $issue->increment('download_count');
+
+        return Storage::disk('public')->download(
+            $issue->pdf_path,
+            $issue->pdf_original_name ?: $issue->slug.'.pdf',
+        );
     }
 
     public function show(Issue $issue): View
