@@ -72,7 +72,10 @@ class IssueController extends Controller
         }
 
         if ($latestIssue->pdf_url) {
-            return redirect()->route('issues.read', $latestIssue);
+            return redirect()->route('issues.read', [
+                'issue' => $latestIssue,
+                'v' => $latestIssue->updated_at?->timestamp ?? $latestIssue->id,
+            ]);
         }
 
         return redirect()->route('issues.show', $latestIssue);
@@ -85,9 +88,15 @@ class IssueController extends Controller
 
         $this->incrementCounterIfAvailable($issue, 'read_count');
 
-        return response()->file(Storage::disk('public')->path($issue->pdf_path), [
+        $response = response()->file(Storage::disk('public')->path($issue->pdf_path), [
             'Content-Type' => 'application/pdf',
         ]);
+
+        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, private');
+        $response->headers->set('Pragma', 'no-cache');
+        $response->headers->set('Expires', '0');
+
+        return $response;
     }
 
     public function download(Issue $issue)

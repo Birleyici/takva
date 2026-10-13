@@ -87,7 +87,7 @@
                                         Detaylar
                                     </a>
                                     @if($issue->pdf_url)
-                                        <a href="{{ route('issues.read', $issue) }}" target="_blank" rel="noopener" class="inline-flex flex-1 items-center justify-center rounded-xl bg-primary-500 px-4 py-2 text-white transition hover:bg-primary-600">
+                                        <a href="{{ route('issues.read', ['issue' => $issue, 'v' => $issue->updated_at?->timestamp ?? $issue->id]) }}" target="_blank" rel="noopener" class="inline-flex flex-1 items-center justify-center rounded-xl bg-primary-500 px-4 py-2 text-white transition hover:bg-primary-600">
                                             Oku
                                         </a>
                                         <a href="{{ route('issues.download', $issue) }}" class="inline-flex flex-1 items-center justify-center rounded-xl bg-accent-500 px-4 py-2 text-secondary-900 transition hover:bg-accent-400">
