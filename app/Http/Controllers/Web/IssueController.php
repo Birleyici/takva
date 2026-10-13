@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Issue;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Throwable;
 
 class IssueController extends Controller
 {
@@ -81,7 +83,7 @@ class IssueController extends Controller
         abort_unless($issue->pdf_path, 404);
         abort_unless(Storage::disk('public')->exists($issue->pdf_path), 404);
 
-        $issue->increment('read_count');
+        $this->incrementCounterIfAvailable($issue, 'read_count');
 
         return response()->file(Storage::disk('public')->path($issue->pdf_path), [
             'Content-Type' => 'application/pdf',
@@ -93,7 +95,7 @@ class IssueController extends Controller
         abort_unless($issue->pdf_path, 404);
         abort_unless(Storage::disk('public')->exists($issue->pdf_path), 404);
 
-        $issue->increment('download_count');
+        $this->incrementCounterIfAvailable($issue, 'download_count');
 
         return Storage::disk('public')->download(
             $issue->pdf_path,
@@ -108,5 +110,15 @@ class IssueController extends Controller
         return view('sayilar.show', [
             'issue' => $issue,
         ]);
+    }
+
+    private function incrementCounterIfAvailable(Issue $issue, string $column): void
+    {
+        try {
+            if (Schema::hasColumn($issue->getTable(), $column)) {
+                $issue->newQuery()->whereKey($issue->getKey())->increment($column);
+            }
+        } catch (Throwable) {
+        }
     }
 }
