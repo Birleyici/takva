@@ -11,7 +11,7 @@ Bu akış sizin mevcut yapınız için hazırlandı:
 2. Projeyi `laravel` klasörüne sync eder
 3. `public/` içeriğini `public_html` klasörüne sync eder
 4. Hostinger'a özel `index.php` dosyasını yükler
-5. Sunucuda `composer install` + `artisan optimize` çalıştırır
+5. Sunucuda `composer install` + `artisan migrate --force` + `artisan optimize` çalıştırır
 
 ## 1) GitHub Secrets
 
@@ -23,10 +23,6 @@ Repository -> Settings -> Secrets and variables -> Actions -> New repository sec
 - `HOSTINGER_SSH_KEY` -> Private key (GitHub Actions için)
 - `HOSTINGER_APP_PATH` -> Laravel path (örn: `/home/u976366413/laravel`)
 - `HOSTINGER_PUBLIC_PATH` -> Public path (örn: `/home/u976366413/public_html`)
-
-Opsiyonel değişken:
-
-- `RUN_MIGRATIONS=true` (Repository -> Settings -> Secrets and variables -> Variables)
 
 ## 2) Sunucuda bir kere yapılacaklar
 

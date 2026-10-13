@@ -20,7 +20,6 @@ jobs:
       SSH_PRIVATE_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
       APP_PATH: ${{ secrets.HOSTINGER_APP_PATH }}
       PUBLIC_PATH: ${{ secrets.HOSTINGER_PUBLIC_PATH }}
-      RUN_MIGRATIONS: ${{ vars.RUN_MIGRATIONS }}
 
     steps:
       - name: Checkout code
@@ -112,7 +111,7 @@ jobs:
       - name: Install PHP dependencies and optimize
         run: |
           ssh -o StrictHostKeyChecking=accept-new -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
-            "APP_PATH='$APP_PATH' PUBLIC_PATH='$PUBLIC_PATH' RUN_MIGRATIONS='${RUN_MIGRATIONS:-false}' bash -se" <<'EOF'
+            "APP_PATH='$APP_PATH' PUBLIC_PATH='$PUBLIC_PATH' bash -se" <<'EOF'
           set -e
 
           cd "$APP_PATH"
@@ -157,9 +156,7 @@ jobs:
           php artisan event:clear || true
           php artisan clear-compiled || true
 
-          if [ "$RUN_MIGRATIONS" = "true" ]; then
-            php artisan migrate --force
-          fi
+          php artisan migrate --force
 
           php artisan optimize
           chmod -R ug+rw storage bootstrap/cache
