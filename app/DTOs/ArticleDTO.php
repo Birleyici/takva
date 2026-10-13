@@ -13,6 +13,7 @@ class ArticleDTO
     public ?string $excerpt = null;
     public ?string $content = null;
     public bool $is_published = true;
+    public int $view_count = 0;
     public ?string $published_at = null;
     public ?int $issue_id = null;
     public ?CategoryDTO $category = null;
@@ -54,6 +55,7 @@ class ArticleDTO
         $dto->excerpt = $data['excerpt'] ?? null;
         $dto->content = $data['content'] ?? null;
         $dto->is_published = (bool) ($data['is_published'] ?? true);
+        $dto->view_count = (int) ($data['view_count'] ?? 0);
         $dto->published_at = $data['published_at'] ?? null;
         $dto->issue_id = $data['issue_id'] ?? null;
         $dto->created_at = $data['created_at'] ?? null;
@@ -107,6 +109,7 @@ class ArticleDTO
             'excerpt' => $this->excerpt,
             'content' => $this->content,
             'is_published' => $this->is_published,
+            'view_count' => $this->view_count,
             'published_at' => $this->published_at,
             'issue_id' => $this->issue_id,
             'category' => $this->category?->toArray(),

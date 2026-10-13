@@ -124,6 +124,8 @@ const formatDate = (value) => {
 
     return date.toLocaleDateString('tr-TR');
 };
+
+const formatNumber = (value) => Number(value ?? 0).toLocaleString('tr-TR');
 </script>
 
 <template>
@@ -214,18 +216,22 @@ const formatDate = (value) => {
                                 </th>
                                 <th scope="col"
                                     class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">
+                                    Görüntülenme
+                                </th>
+                                <th scope="col"
+                                    class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">
                                     İşlemler
                                 </th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-neutral-100">
                             <tr v-if="loading">
-                                <td colspan="5" class="px-6 py-8 text-center text-sm text-neutral-500">
+                                <td colspan="6" class="px-6 py-8 text-center text-sm text-neutral-500">
                                     Makaleler yükleniyor...
                                 </td>
                             </tr>
                             <tr v-else-if="!hasArticles">
-                                <td colspan="5" class="px-6 py-8 text-center text-sm text-neutral-500">
+                                <td colspan="6" class="px-6 py-8 text-center text-sm text-neutral-500">
                                     Henüz makale eklenmemiş. İlk makalenizi oluşturmak için sağ üstteki butonu kullanın.
                                 </td>
                             </tr>
@@ -277,6 +283,9 @@ const formatDate = (value) => {
                                     <div class="text-xs text-neutral-400">
                                         {{ formatDate(article.published_at || article.created_at) }}
                                     </div>
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-5 text-right text-sm font-semibold text-secondary-900">
+                                    {{ formatNumber(article.view_count) }}
                                 </td>
                                 <td class="whitespace-nowrap px-6 py-5 text-right">
                                     <div class="flex items-center justify-end gap-2">
